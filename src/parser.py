@@ -27,7 +27,7 @@ def day_summarization(filename=None):
 	Keyword arguments: 
 	filename -- string: name of csv file 
 	
-	return pandas dataframe 
+	return a single row (summarization) pandas dataframe 
 	"""
 
 	df = pd.read_csv(filename)
@@ -56,7 +56,7 @@ def day_summarization(filename=None):
 	return df.iloc[11,:]
 
 #create the data matrix
-data=list()
+data = list()
 day = list()
 for year in years:
 	filelist=glob.glob(os.path.join(datadir,airport,year,'*.txt'))
@@ -68,19 +68,25 @@ for year in years:
 
 datMat = np.vstack(data)
 dayMat = np.hstack(day)
-#for later concatenation
+
+#To later concatenate, requires 1d array to be 2d
+#e.g. must have dayMat.shape = [nsamples,1]
 dayMat=dayMat.reshape(dayMat.shape[0],1)
-#cluster
-#kmeans
+
+#Now cluster scaled data
+#kmeans algo
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import scale
 
 numclusters=10
 kmeans = KMeans(init='k-means++', n_clusters=numclusters, n_init=10)
+#scale 
 labels=kmeans.fit_predict(scale(datMat))
 labels=labels.reshape(labels.shape[0],1)
 
+#concatenate
 kmeans_output = np.hstack((dayMat,labels,datMat))
+#write to file
 np.savetxt('kmeans_JFK.csv',kmeans_output,fmt='%s', delimiter=',')
 
 	
