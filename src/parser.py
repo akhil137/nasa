@@ -56,7 +56,7 @@ def day_summarization(filename,weights):
 	#weights determined by time period of interest 
 	#e.g. if interested for 1000, weight +/- 2hr these unity
 	#less weight for other times before after
-	if not weights:
+	if not weights.any():
 		weights=np.ones(24)
 
 	#METAR can have more than 24 obs (multiple obs per hour)

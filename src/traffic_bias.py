@@ -21,8 +21,6 @@
 
 
 
-
-
   :copyright: (c) 2015 by Akhil Shah, Kenneth Kuhn, RAND Corp.
   
 """
