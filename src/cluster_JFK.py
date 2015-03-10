@@ -7,6 +7,7 @@ from traffic_bias import generate_average_hourly_traffic
 from traffic_bias import traffic_bias_weights
 from filtering import weighted_average
 from sklearn.cluster import KMeans
+from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import scale
 import numpy as np
 from datetime import datetime
@@ -53,6 +54,14 @@ dayMat = np.hstack(day)
 #e.g. must have dayMat.shape = [nsamples,1]
 dayMat=dayMat.reshape(dayMat.shape[0],1)
 
+#rows where there are negative values 
+#(all should be positive for our features)
+bad_rows = np.where(datMat<0)[0]
+datMat = np.delete(datMat,bad_rows,axis=0)
+dayMat = np.delete(dayMat,bad_rows,axis=0)
+
+
+
 
 #4. cluster scaled data
 #kmeans algo
@@ -70,4 +79,13 @@ for numclusters in number_of_clusters:
 	features = weighted_average(filepath,weights).columns.tolist()
 	head = 'date,cluster,' + ','.join(features)
 	np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head)
+
+#dbscan
+db=DBSCAN(eps=0.3, min_samples=10).fit(scale(datMat))
+db_labels=db.labels_
+nc=len(set(db_labels))-(1 if -1 in db_labels else 0)
+db_labels=db_labels.reshape(db.labels.shape[0],1)
+dbscan_output = np.hstack((dayMat,db_labels,datMat))
+outfile = airport+'trafficBias_dbscan_'+str(nc)+'.csv'
+np.savetxt(outfile,dbscan_output,fmt='%s', delimiter=',', header=head)
 

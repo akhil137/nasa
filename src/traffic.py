@@ -53,7 +53,7 @@ trafficDF.loc['12/31/2010']
 #pickle this out and store for later usage
 trafficDF.to_pickle(os.path.join(datadir,'JFK_traffic.pkl'))
 #unpickle later as such
-#df=pickle.load(open('JFK_traffic.pkl','rb'))
+df=pickle.load(open('JFK_traffic.pkl','rb'))
 
 #compute weights
 weightsAll=trafficDF.groupby(level='Hour').mean()
