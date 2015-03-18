@@ -37,7 +37,7 @@ weights = traffic_bias_weights(average_traffic)
 data = list()
 day = list()
 for year in years:
-	print 'parsing METAR year %s', year
+	print 'parsing METAR year %s' %year
 	#list of all files
 	filelist=glob.glob(os.path.join(datadir,airport,year,'*.txt'))
 	#filter each file
