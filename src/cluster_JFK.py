@@ -37,8 +37,8 @@ weights = traffic_bias_weights(average_traffic)
 data = list()
 day = list()
 for year in years:
+	print 'parsing METAR year %s', year
 	#list of all files
-	print year
 	filelist=glob.glob(os.path.join(datadir,airport,year,'*.txt'))
 	#filter each file
 	data.append([weighted_average(clean_frame(filepath),weights).values.flatten() \
@@ -80,7 +80,7 @@ for numclusters in number_of_clusters:
 	kmeans_output = np.hstack((dayMat,labels,datMat))
 	#write to file
 	outfile = airport+'trafficBias_kmeans'+'_'+str(numclusters)+'.csv'
-	features = weighted_average(filepath,weights).columns.tolist()
+	features = weighted_average(clean_frame(filepath),weights).columns.tolist()
 	head = 'date,cluster,' + ','.join(features)
 	np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head)
 
@@ -88,7 +88,7 @@ for numclusters in number_of_clusters:
 db=DBSCAN(eps=0.3, min_samples=10).fit(scale(datMat))
 db_labels=db.labels_
 nc=len(set(db_labels))-(1 if -1 in db_labels else 0)
-db_labels=db_labels.reshape(db.labels.shape[0],1)
+db_labels=db_labels.reshape(db_labels.shape[0],1)
 dbscan_output = np.hstack((dayMat,db_labels,datMat))
 outfile = airport+'trafficBias_dbscan_'+str(nc)+'.csv'
 np.savetxt(outfile,dbscan_output,fmt='%s', delimiter=',', header=head)
