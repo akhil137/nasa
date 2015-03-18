@@ -1,33 +1,26 @@
 """
-Collections of functions to reduce multiple obs 
-to a single ob for a given day
+Collections of functions to:
+0. clean METAR data
+1. transform to a numerical matrix (for machine learning)
+2. reduce multiple obs to a single ob for a given day
 """
 import pandas as pd
+import numpy as np
+import pdb
 
-def weighted_average(filename,weights):
+def clean_frame(filename):
 	"""Take a csv file of METAR data for a day at single site
-	and parse appropriate columns and perform summarization
-	with weighted average.  If no weights are supplied
-	they are assumed to be unity.
-
+	and parse appropriate columns
 	Keyword arguments: 
-	@filename -- string: name of csv file 
-	@weights -- numpy array of weights
-	
-	@returns a single row (summarization) pandas dataframe 
-	"""
+	@filename -- string: name of csv file
+	@returns -- pandas data frame
 
+	"""
 	df = pd.read_csv(filename)
 	#get date from first entry (row) of DateUTC column
 	date = df['DateUTC<br />'][0].split(' ')[0]
 	
 	#drop the following columns
-	timeLabel = df.columns.values[0] #fluctuates from 'TimeEST' to 'TimeEDT'
-	"""
-	dropLabels = ['FullMetar','DateUTC<br />', timeLabel, \
-	'Wind Direction','Gust SpeedMPH','Events','Conditions', \
-	'WindDirDegrees', 'Sea Level PressureIn', 'Dew PointF']
-	"""
 	dropLabels = ['FullMetar', 'DateUTC<br />', \
 	'Wind Direction','Gust SpeedMPH','Events','Conditions', \
 	'WindDirDegrees', 'Sea Level PressureIn', 'Dew PointF']
@@ -38,13 +31,41 @@ def weighted_average(filename,weights):
 	#then replace all NaN with 0 (including Precipitation)
 	df = df.convert_objects(convert_numeric=True)
 	df.fillna(0, inplace=True)
-	
-	#TODO: weighted average of data
-	#weights determined by time period of interest 
-	#e.g. if interested for 1000, weight +/- 2hr these unity
-	#less weight for other times before after
-	#uniform weights can be set as:
+
+	#remove spaces in column names and replace with '_'
+	cols = df.columns
+	cols = cols.map(lambda x: x.replace(' ', '_') if \
+		isinstance(x, (str, unicode)) else x)
+	df.columns = cols
+
+	#now remove rows that have negative values in any column
+	##TODO: investigate package 'numexpr' and pass to engine param below
+	df=df.query(' >= 0 & '.join(df.columns.tolist()[1:]) + '>= 0', engine='python')
+
+	return df
+
+def data_matrix(dataframe):
+
+	df=dataframe
+	timeLabel = df.columns.values[0] 
+	df.drop(labels=timeLabel,axis=1,inplace=True)
+	return np.vstack(data)
+
+
+
+def weighted_average(dataframe,weights):
+	"""Take a METAR data frame and perform summarization
+	with weighted average. Uniform weights can be set as:
 	#weights=np.ones(24)
+
+	Keyword arguments: 
+	@dataframe -- pandas data frame (ideally output of clean_frame)
+	@weights -- numpy array of weights
+	@returns a single row (summarization) pandas dataframe 
+	"""
+	df = dataframe
+
+	timeLabel = df.columns.values[0] #fluctuates from 'TimeEST' to 'TimeEDT'
 
 	#METAR can have more than 24 obs (multiple obs per hour)
 	#Sow we'll create another column called Hour to weight it
@@ -53,7 +74,6 @@ def weighted_average(filename,weights):
 	#the same weight for multiple obs in the same hour
 	df['Hour']=[a.hour for a in pd.to_datetime(df[timeLabel])]
 	df['weights']=[weights[a] for a in df['Hour']]
-
 
 	#now return the weighted average
 	wdf=pd.DataFrame()

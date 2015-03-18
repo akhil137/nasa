@@ -5,6 +5,7 @@ import os
 import glob
 from traffic_bias import generate_average_hourly_traffic
 from traffic_bias import traffic_bias_weights
+from filtering import clean_frame
 from filtering import weighted_average
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
@@ -30,14 +31,17 @@ years=[yr for yr in os.listdir(os.path.join(datadir,airport)) \
 average_traffic = generate_average_hourly_traffic(airport_abbrv)
 weights = traffic_bias_weights(average_traffic)
 
+#pickle out weigts since they are static
+
 #3. create the filtered data matrix from every METAR file datadir
 data = list()
 day = list()
 for year in years:
 	#list of all files
+	print year
 	filelist=glob.glob(os.path.join(datadir,airport,year,'*.txt'))
 	#filter each file
-	data.append([weighted_average(filepath,weights).values.flatten() \
+	data.append([weighted_average(clean_frame(filepath),weights).values.flatten() \
 		for filepath in filelist])
 	#extract dates from filenames and store
 	date_formater = lambda x: datetime.strptime\

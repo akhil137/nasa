@@ -1,4 +1,0 @@
-#count number of directories (e.g. count number of airports in METAR dir)
-##subtract 1 from result as it also counts .
-find . -type d -maxdepth 1 | wc -l
-
