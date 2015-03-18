@@ -45,11 +45,18 @@ def clean_frame(filename):
 	return df
 
 def data_matrix(dataframe):
+	"""
+	returns a dictionary of row vectors; feature data
+	so you can stack these rows for each day
+	"""
 
 	df=dataframe
 	timeLabel = df.columns.values[0] 
 	df.drop(labels=timeLabel,axis=1,inplace=True)
-	return np.vstack(data)
+	dm = dict()
+	for i, key in enumerate(df.columns):
+		dm[key]=df.iloc[:,i].values.flatten()
+	return dm
 
 
 
