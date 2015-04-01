@@ -69,15 +69,21 @@ dfall['year']=[pd.to_datetime(a).year for a in dfall['date']]
 features=['Humidity', 'PrecipitationIn', 'TemperatureF','VisibilityMPH', 'Wind_SpeedMPH']
 
 plt.figure(1)
-
 for i,f in enumerate(features):
 	plt.figure(1)
 	ax=plt.subplot(2,3,i)
 	df.boxplot(column=f,by='year',ax=ax)
-
 plt.show()
 
-
+#scatter plots
+import itertools
+plt.figure(2)
+for i,f in enumerate(itertools.combinations(features,2)):
+	plt.figure(2)
+	ax=plt.subplot(3,4,i)
+	df.plot(kind='scatter',x=f[0],y=f[1],ax=ax)
+	print f[0] + f[1]
+plt.show()
 
 
 
