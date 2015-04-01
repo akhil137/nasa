@@ -18,7 +18,7 @@ def clean_frame(filename):
 	"""
 	df = pd.read_csv(filename)
 	#get date from first entry (row) of DateUTC column
-	date = df['DateUTC<br />'][0].split(' ')[0]
+	df['date'] = df['DateUTC<br />'][0].split(' ')[0]
 	
 	#drop the following columns
 	dropLabels = ['FullMetar', 'DateUTC<br />', \
@@ -49,13 +49,19 @@ def data_matrix(dataframe):
 	returns a dictionary of row vectors; feature data
 	so you can stack these rows for each day
 	"""
-
-	df=dataframe
+	df=dataframe.copy()
 	timeLabel = df.columns.values[0] 
-	df.drop(labels=timeLabel,axis=1,inplace=True)
+	#get the hour
+	df['Hour']=[a.hour for a in pd.to_datetime(df[timeLabel])]
+	#drop multiple obs in the same Hour
+	df.drop_duplicates(subset='Hour',inplace=True)
+	#drop time labels and Hour label
+	df.drop(labels=[timeLabel,'date','Hour'],axis=1,inplace=True)
 	dm = dict()
+	#convert numerical values to float for scaling and pca
 	for i, key in enumerate(df.columns):
-		dm[key]=df.iloc[:,i].values.flatten()
+		dm[key]=df.iloc[:,i].values.astype('float').flatten()
+		dm[key]=dm[key].reshape(1,dm[key].shape[0])
 	return dm
 
 
@@ -70,7 +76,7 @@ def weighted_average(dataframe,weights):
 	@weights -- numpy array of weights
 	@returns a single row (summarization) pandas dataframe 
 	"""
-	df = dataframe
+	df = dataframe.copy()
 
 	timeLabel = df.columns.values[0] #fluctuates from 'TimeEST' to 'TimeEDT'
 
@@ -85,7 +91,7 @@ def weighted_average(dataframe,weights):
 	#now return the weighted average
 	wdf=pd.DataFrame()
 	#need to drop time string column before arithmetic
-	df.drop(labels=timeLabel,axis=1,inplace=True)
+	df.drop(labels=[timeLabel,'date'],axis=1,inplace=True)
 
 	for a in df.columns.values:
 		wdf[a] = [df[a].dot(df.weights).sum()/df.weights.sum()]
