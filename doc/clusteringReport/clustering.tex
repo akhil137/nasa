@@ -1,0 +1,86 @@
+\documentclass[11pt]{amsart}
+\usepackage{geometry}                % See geometry.pdf to learn the layout options. There are lots.
+\geometry{letterpaper}                   % ... or a4paper or a5paper or ... 
+%\geometry{landscape}                % Activate for for rotated page geometry
+%\usepackage[parfill]{parskip}    % Activate to begin paragraphs with an empty line rather than an indent
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{epstopdf}
+\usepackage{listings}
+\usepackage{color}
+\DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
+
+\title{Clustering algorithms for NASA}
+\author{Akhil Shah}
+%\date{}                                           % Activate to display a given date or no date
+
+\begin{document}
+\maketitle
+\section{Intro to clustering}
+Datasets can be represented as $N$-by-$p$ matrices, where we have $N$ records and $p$ features.  For clustering weather into similar days, we need to prepare our matrix as $N$ rows, each representing a different calendar day, and $p$ columns representing measured or forecasted observation (e.g. visibility, precipitation, arrivals).  If each of the $p$ features are numerical, they can be standardized (centered with the sample mean and normalized by the sample variance) and each of the $N$ day records becomes a point in $p$-dimensional real space $\mathbb{R}^p$.  
+
+In order to understand clustering algorithms, we find it helpful to consider a probabilistic framework from which the data could be generated.  For example, one model for how each day record (a $p$-dimensional feature vector) is generated is by assuming we are sampling a random variable $X$ drawn from a Gaussian Mixture Model (GMM) \cite{murphy}, which gives a point in  $\mathbb{R}^p$ for each of the $N$ days.  A GMM is probability distribution which combines $K$ normal distributions with mean $\mu_i$ and covariance matrix $\Sigma_i$ for $i=1\ldots K$.  In particular the likelihood model of observing a day record $x_i$ is the sum of conditional probabilities of drawing from each of the Gaussians in the mixture
+\begin{equation}
+p(x_i) = \sum_k^K p(x_i|z_i=k) p(z_i=k)=  \sum_k^KN(x_i|\mu_k,\Sigma_k)\pi_k,
+\end{equation}
+where $z_i$ is a latent (unobserved) random variable that indicates we have drawn from $k^{th}$ Gaussian distribution, which has prior probability $p(z_i=k)=\pi_k$ of being chosen (with the constraint that $\sum_k^K\pi_k=1$ for consistency).  The clustering problem is thus recast in the GMM as inferring which of the $K$ clusters or Gaussians the day record $x_i$ was drawn from or in other words the task of the clustering algorithm is to infer the posterior of the latent variable which determine the probability the observed $x_i$ was drawn from cluster $k$, which is determined by Bayes rule
+\begin{equation}
+p(z_i=k|x_i) = \frac{p(x_i|z_i=k)p(z_i=k)}{\sum_k^K p(x_i|z_i=k)p(z_i=k)}=\frac{ N(x_i|\mu_k,\Sigma_k)\pi_k}{\sum_k^KN(x_i|\mu_k,\Sigma_k)\pi_k},
+\end{equation}
+and is called the `cluster-reponsibility' \cite{murphy} for the $i^{th}$ day record.  Below we will note that k-means is a form of ``hard-clustering'' which chooses the largest value amongst these posterior probabilities to determine cluster assignment.  More generally however, a clustering algorithm attempts to fit all of the parameters {$\pi_k,\mu_k,\Sigma_k$} from using an iterative algorithm such as Expectation-Maximization (EM) \cite{murphy}\cite{lange1999numerical} to calculate the above cluster responsibilities.  
+
+\subsection{K-means}
+Although various k-means algorithms (such as Llyod's algorithm \cite{lange1999numerical}) can be articulated without referencing the above GMM probabilistic framework, it is helpful to understand the assumptions behind k-means and this is most easily done with the above context.  In particular k-means assumes \cite{murphy}:  that each of the above clusters has equal and uncorrelated features, i.e. $\Sigma_k=\sigma^2\mathbb{I}_p$; and that the prior cluster probabilities are uniform, i.e. $\pi_k=1/K$.  Thus any inference algorithm (such as EM) needs to only determine cluster center and assign each day record $x_i$ to the closest cluster center.  The reduction of the EM algorithm with these assumptions is equavilent to minimizing the following objective function
+\begin{equation}
+f(\mu_k,C_k) = \sum_k^K \sum_{x_i\in C_k} ||x_i-\mu_k||^2_2.
+\end{equation}
+over the cluster centers $\mu_k$, and cluster assignments of each $x_i$ into disjoint sets $C_k$.  Llyod's algorithm to solve this mixed continuous-discrete (cluster assignment is discrete) optimization problem \cite{lange1999numerical} alternates cluster assignment of each data $x_i$ with fixed cluster centers by minimizing the Euclidean distance above, and computation of cluster centers with fixed cluster assignments using the vector-average $\mu_k=1/N_k\sum_{x_i\in C_k}x_i$.  The initial assignment of cluster centers can be randomly chosen to be $K$ of the $N$ data points.  Robustness to outliers can be increased by switching to k-medians rather k-means \cite{lange1999numerical}, which requires changing the objective function to
+\begin{equation}
+f(\mu_k,C_k) = \sum_k^K \sum_{x_i\in k} ||x_i-\mu_k||_1,
+\end{equation}
+but also increasing the computational complexity of the algorithm.
+
+
+
+
+\subsection{DBSCAN}
+Clustering days at the airspace level requires a machine learning algorithm that is suitable for large data sets of spatial features, such as meteorological measurements at various geographically distributed stations.  If the number of clusters are not known ahead of time, through say domain knowledge, then partitioning algorithms such as k-Means, are not appropriate, since specifying the number of clusters is an input to the algorithm.  In this section we briefly explain the DBSCAN algorithm \cite{ester1996density}, which was designed for large datasets which exhibit arbitrary spatial patterns and for which the number of clusters is not known a priori.
+
+The DBSCAN algorithm requires two parameters $\epsilon$ and $N_{min}$, and a distance metric, which for the purposes of explanation we assume is Euclidean distance (consistent with our k-means discussion above).  Note we are not required to specify the number of clusters ahead of time as we did for k-means.  The algorithm proceeds by visiting each data point $x_i$ (a point in $p$-dimensional feature space), and determining the set of neighbor points, defined to be with a distance $\epsilon$ of the point in question.  If there at least $N_{min}$ points within the $\epsilon$-neighborhood of $x_i$, then t$x_i$ is deemed a ``core"-point, and the points within it's $\epsilon$-neighborhood are deemed ``directly-reachable" from $x_i$.  Note that when we examine $x_i$'s neighborhood we may find less than $N_{min}$ points and in that case, $x_i$ is deemed a non-core point and also (by definition) does not have points directly-reachable from it, even those in it's $\epsilon$-neighborhood.  Non-core points may thus be directly-reachable from core points, or even just ``reachable" by a sequence of directly-reachable core-points, but can never themselves 'reach' other points.  Clusters are formed by establishing sets of density-reachable points, with the additional property that all points within that set are also ``density-connected", meaning that for every pair of points in the cluster, there exists a core point that can reach both.  Furthermore there can exists certain points which are not directly reachable by any other point, and these are deemed ``noise" points.  There are several implementations of DBSCAN, including one we have used \cite{scikit-learn}, which attempt to manage the computational complexity of the algorithm and other methods to help users select both $N_{min}$ and $\epsilon$.    
+
+%note: explain OPTICS algorithm as improvement of DBSCAN
+
+\subsection{filtering multiple observations}
+METAR data has roughly 24 hourly observations of each feature per day. We propose two strategies to derive a single value for each feature per day.
+
+\subsubsection{Traffic biasing}
+
+
+\subsubsection{PCA}
+Principle Component Analysis is used to de-correlate features \cite{orfanidis2007svd}.  In our application, we represent each single weather observable (e.g. visibility) as having 24 features per day, with each feature being the hourly observation of that feature.  
+
+
+
+
+
+%%--code here-%%%
+%\lstset{frame=single,rulesepcolor=\color{blue}}
+%\lstset{language=python, numbers=left, stepnumber=1,basicstyle=\tiny, keywordstyle=\color{blue}}
+%\lstinputlisting{/Users/ashah/NoBackup/code/nasa/src/filtering.py}
+
+%%--graphics here-%%%
+%\begin{figure}[htbp]
+%\begin{center}
+%
+%\includegraphics[scale=0.5]{controllerXib.png}
+%
+%\caption{a caption for the graphic}
+%\label{default}
+%\end{center}
+%\end{figure}
+
+
+%%--LaTeX then BibTeX then LaTeX-%%%
+\bibliographystyle{abbrv}
+\bibliography{all}
+\end{document} 
