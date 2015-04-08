@@ -133,6 +133,8 @@ dmdict=dict()
 pcadict=dict()
 
 for i, key in enumerate(dmlist[0].keys()):
+		#only include days which have exactly 24 obs 
+		#two days had 23 since dropping visibility > 10
 		dmdict[key]=[a[key] for a in dmlist if a[key].shape[1]==24]
 		dmdict[key]=np.vstack(dmdict[key])
 		pca=PCA(n_components=3)
@@ -143,5 +145,63 @@ for i, key in enumerate(pcadict.keys()):
 		ax=plt.subplot(2,3,i)
 		ax.set_title(key+' PCA component variation 2010-2013')
 		ax.boxplot(pcadict[key])
+plt.show()
 
+#get categorical data
+def get_events(filename):
+	"""Take a csv file of METAR data for a day at single site
+	and parse appropriate columns
+	Keyword arguments: 
+	@filename -- string: name of csv file
+	@returns -- pandas data frame
 
+	"""
+	df = pd.read_csv(filename)
+	#get date from first entry (row) of DateUTC column
+	df['date'] = df['DateUTC<br />'][0].split(' ')[0]
+	
+	
+	#drop the following columns
+	dropLabels = ['FullMetar', 'DateUTC<br />', \
+	'Wind Direction','Gust SpeedMPH', \
+	'WindDirDegrees', 'Sea Level PressureIn', 'Dew PointF', \
+	'TemperatureF',  'Humidity','VisibilityMPH', \
+    'Wind SpeedMPH', 'PrecipitationIn']
+
+	df.drop(labels=dropLabels,axis=1,inplace=True)
+	
+	#add hour column
+	timeLabel = df.columns.values[0] 
+	df['Hour'] = pd.to_datetime(df[timeLabel]).dt.hour
+	#drop timelabel column since we don't use anything beyond hour
+	df.drop(labels=timeLabel,axis=1,inplace=True)
+
+	return df
+
+dfcat=pd.DataFrame()
+for year in years:
+	filelist=glob.glob(os.path.join(datadir,airport,year,'*.txt'))
+	for filepath in filelist:
+		dfcat=dfcat.append(get_events(filepath))
+
+#list of unique events/condition categories
+pd.unique(dfcat.Conditions)
+pd.unique(dfcat.Events)
+#summary stats of non-na events
+dfcat.Events.describe() #
+
+#get dates belogining to an event category
+group=dfcat.groupby('Events')
+pd.unique(group.get_group('Snow').date)
+#dict where keys are events
+eventDateDict=dict()
+for key in pd.unique(dfcat.Events).tolist():
+		if not pd.isnull(key):
+			eventDateDict[key]=pd.unique(group.get_group(key).date)
+
+#now create a dictionary where the keys are dates (close to a calendar view)
+groupDate=dfcat.groupby('date')
+dateEventDict=dict()
+for key in pd.unique(dfcat.date).tolist():
+		if not pd.isnull(key):
+			dateEventDict[key]=pd.unique(groupDate.get_group(key).Events.dropna()).tolist()
