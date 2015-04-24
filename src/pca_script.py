@@ -8,11 +8,11 @@ from filtering import data_matrix
 from sklearn.cluster import KMeans
 from sklearn.cluster import DBSCAN
 from sklearn.preprocessing import scale
-from sklearn.preprocessing import scale
 from sklearn.decomposition import PCA
 from itertools import chain
 
 import numpy as np
+import pandas as pd
 from datetime import datetime
 
 
@@ -67,9 +67,9 @@ pcadict=dict()
 
 
 for i, key in enumerate(dmlist[0].keys()):
-		dmdict[key]=[a[key] for a in dmlist]
+		dmdict[key]=[a[key] for a in dmlist if a[key].shape[1]==24]
 		dmdict[key]=np.vstack(dmdict[key])
-		pca=PCA(n_components=1)
+		pca=PCA(n_components=3)
 		pcadict[key]=pca.fit_transform(scale(dmdict[key]))
 
 
