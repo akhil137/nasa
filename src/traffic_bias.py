@@ -51,7 +51,24 @@ def traffic_bias_weights(frame):
 
 
 
+def generate_hourly_traffic(airport_code = 'JFK', data_dir = None):
+	"""
+	returns a large data frame with all dates and hours arrival and departures
+	""" 
+	if not data_dir:
+		datadir='/Users/ashah/NoBackup/code/nasa/data/ASPM_CSV'
+	filelist = glob.glob(os.path.join(datadir,'*.csv'))
+	trafficDF = pd.DataFrame()
+	for fn in filelist:
+		df = pd.read_csv(fn)
+		#csv files have a whitespace before airport code in Facility 
+		dfJ = df[df.Facility == ' '+ airport_code].loc[:,['Date','Hour','ScheduledDepartures','ScheduledArrivals']]
+		dfJts=dfJ.set_index(['Date','Hour'])
+		dfJts.columns=['D','A']
+		trafficDF = trafficDF.append(dfJts)
 
+	#avg_traffic = trafficDF.groupby(level='Hour').mean()
+	return avg_traffic
 
 
 
