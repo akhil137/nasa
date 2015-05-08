@@ -68,7 +68,7 @@ def generate_hourly_traffic(airport_code = 'JFK', data_dir = None):
 		trafficDF = trafficDF.append(dfJts)
 
 	#avg_traffic = trafficDF.groupby(level='Hour').mean()
-	return avg_traffic
+	return trafficDF
 
 
 
