@@ -7,6 +7,7 @@ Collections of functions to:
 import pandas as pd
 import numpy as np
 import pdb
+from collections import Counter
 
 def clean_frame(filename):
 	"""Take a csv file of METAR data for a day at single site
@@ -23,7 +24,7 @@ def clean_frame(filename):
 	
 	#drop the following columns
 	dropLabels = ['FullMetar', 'DateUTC<br />', \
-	'Wind Direction','Gust SpeedMPH','Events','Conditions', \
+	'Wind Direction','Gust SpeedMPH','Events', \
 	'WindDirDegrees', 'Sea Level PressureIn', 'Dew PointF']
 
 	df.drop(labels=dropLabels,axis=1,inplace=True)
@@ -47,7 +48,7 @@ def clean_frame(filename):
 	df=df.query('VisibilityMPH <= 10')
 
 	#add hour column
-	timeLabel = df.columns.values[0] 
+	timeLabel = df.columns.values[0]
 	df['Hour'] = pd.to_datetime(df[timeLabel]).dt.hour
 	#drop timelabel column since we don't use anything beyond hour
 	df.drop(labels=timeLabel,axis=1,inplace=True)
@@ -103,10 +104,14 @@ def weighted_average(dataframe,weights):
 	#need to drop time string column before arithmetic
 	df.drop(labels=['date'],axis=1,inplace=True)
 
-	for a in df.columns.values:
+	#take the weighted average of 5 key variables
+	for a in ['TemperatureF', 'Humidity', 'VisibilityMPH', 'Wind_SpeedMPH', 'PrecipitationIn']:
 		wdf[a] = [df[a].dot(df.weights).sum()/df.weights.sum()]
 
-	wdf.drop(labels=['Hour','weights'],axis=1,inplace=True)
+	#also pick out the most commonly observed conditions
+	wdf['Conditions'] = Counter(df['Conditions']).most_common()[0][0]
+
+	# no longer nec: wdf.drop(labels=['Hour','weights'],axis=1,inplace=True)
 	#return weighted average
 	return wdf
 
