@@ -82,7 +82,9 @@ trafDF=trafDF.ix[METARdates]
 #.A selects arrivals
 #.as_matrix() now gives a [#dates,#hours] matrix
 #.reshape now reshapes it to [#dates,8,3] and we max on the last axis 'axis=2'
-arrivals_max=np.max(trafDF.unstack().A.as_matrix().reshape(-1,8,3),axis=2)
+#TODO: unstack gives NaN, figure out why
+arrivals_max=np.max(trafDF.A.unstack().as_matrix().reshape(-1,8,3),axis=2)
 
 #now make a data matrix
 datmat=np.concatenate((vis_min,wind_speed_max,arrivals_max),axis=1)
+

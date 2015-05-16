@@ -67,7 +67,7 @@ def data_matrix(dataframe):
 	df.drop_duplicates(subset='Hour',inplace=True)
 	#drop time labels and Hour label
 	date = Counter(df['date']).most_common()[0][0]
-	df.drop(labels=['date','Hour'],axis=1,inplace=True)
+	df.drop(labels=['date','Hour','Conditions'],axis=1,inplace=True)
 	dm = dict()
 	#convert numerical values to float for scaling and pca
 	for i, key in enumerate(df.columns):

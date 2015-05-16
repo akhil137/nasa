@@ -30,8 +30,7 @@ import os
 
 def generate_average_hourly_traffic(airport_code = 'JFK', data_dir = None):
 	if not data_dir:
-		# datadir='/Users/ashah/NoBackup/code/nasa/data/ASPM_CSV'
-		datadir='/Users/kkuhn/Desktop/csv_ASPM'
+		datadir='/Users/ashah/NoBackup/code/nasa/data/ASPM_CSV'
 	filelist = glob.glob(os.path.join(datadir,'*.csv'))
 	trafficDF = pd.DataFrame()
 	for fn in filelist:
@@ -57,8 +56,7 @@ def generate_hourly_traffic(airport_code = 'JFK', data_dir = None):
 	returns a large data frame with all dates and hours arrival and departures
 	""" 
 	if not data_dir:
-		# datadir='/Users/ashah/NoBackup/code/nasa/data/ASPM_CSV'
-		datadir='/Users/kkuhn/Desktop/csv_ASPM'
+		datadir='/Users/ashah/NoBackup/code/nasa/data/ASPM_CSV'
 	filelist = glob.glob(os.path.join(datadir,'*.csv'))
 	trafficDF = pd.DataFrame()
 	for fn in filelist:

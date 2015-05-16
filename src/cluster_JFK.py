@@ -15,8 +15,7 @@ from datetime import datetime
 
 
 #1. define the data path and airport
-#datadir='/Users/ashah/NoBackup/code/nasa/data/METAR/'
-datadir='/Users/kkuhn/Desktop'
+datadir='/Users/ashah/NoBackup/code/nasa/data/METAR/'
 airport_abbrv = 'JFK'
 
 #get all the airports which are sub-dirs to datadir
