@@ -15,7 +15,8 @@ from datetime import datetime
 
 
 #1. define the data path and airport
-datadir='/Users/ashah/NoBackup/code/nasa/data/METAR/'
+#datadir='/Users/ashah/NoBackup/code/nasa/data/METAR/'
+datadir='/Users/kkuhn/Desktop'
 airport_abbrv = 'JFK'
 
 #get all the airports which are sub-dirs to datadir
@@ -31,7 +32,7 @@ years=[yr for yr in os.listdir(os.path.join(datadir,airport)) \
 average_traffic = generate_average_hourly_traffic(airport_abbrv)
 weights = traffic_bias_weights(average_traffic)
 
-#pickle out weigts since they are static
+#pickle out weights since they are static
 
 #3. create the filtered data matrix from every METAR file datadir
 data = list()
@@ -47,7 +48,6 @@ for year in years:
 	date_formater = lambda x: datetime.strptime\
 	(x.split('/')[-1].split('.')[0][5:],'%Y_%m_%d')\
 	.strftime('%m/%d/%Y')
-
 	day.append([date_formater(filepath) for filepath in filelist])
 	
 
@@ -64,8 +64,9 @@ bad_rows = np.where(datMat<0)[0]
 datMat = np.delete(datMat,bad_rows,axis=0)
 dayMat = np.delete(dayMat,bad_rows,axis=0)
 
-
-
+conditionsMat = np.delete(datMat,[0,1,2,3,4],axis=1)
+datMat = np.delete(datMat,5,1)
+datMat = datMat.astype(float)
 
 #4. cluster scaled data
 #kmeans algo
@@ -75,14 +76,29 @@ for numclusters in number_of_clusters:
 	#scale 
 	labels=kmeans.fit_predict(scale(datMat))
 	labels=labels.reshape(labels.shape[0],1)
-
 	#concatenate
-	kmeans_output = np.hstack((dayMat,labels,datMat))
+	kmeans_output = np.hstack((dayMat,labels,datMat,conditionsMat))
 	#write to file
 	outfile = airport+'trafficBias_kmeans'+'_'+str(numclusters)+'.csv'
 	features = weighted_average(clean_frame(filepath),weights).columns.tolist()
 	head = 'date,cluster,' + ','.join(features)
 	np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head)
+	#evaluate concurrency between cluster membership and conditions
+	all_cond = set(conditionsMat.flat)
+	all_lab = set(labels.flat)
+	concurrency = []
+	for label in all_lab:
+		#pick out the days with the right cluster membership
+		right_label = [i for i, x in enumerate(labels) if x==label]
+		for condition in all_cond:
+			#pick out the days with the right conditions
+			right_conditions = [i for i, x in enumerate(conditionsMat) if x==condition]
+			concurrency.append(len(list(set(right_conditions)&set(right_label))))
+	concurrency_matrix = np.asarray(concurrency).reshape((numclusters,14))
+	outfile = airport+'_'+'concurrency_kmeans_'+str(numclusters)+'.csv'
+	head = ','.join(all_cond)
+	np.savetxt(outfile,concurrency_matrix,fmt='%s', delimiter=',', header=head)
+
 
 #dbscan
 db=DBSCAN(eps=0.3, min_samples=10).fit(scale(datMat))
