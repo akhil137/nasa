@@ -6,7 +6,8 @@ Collections of functions to:
 """
 import pandas as pd
 import numpy as np
-import pdb
+#import pdb
+from collections import Counter
 
 def clean_frame(filename):
 	"""Take a csv file of METAR data for a day at single site
@@ -66,12 +67,14 @@ def data_matrix(dataframe):
 	#drop multiple obs in the same Hour
 	df.drop_duplicates(subset='Hour',inplace=True)
 	#drop time labels and Hour label
+	date = Counter(df['date']).most_common()[0][0]
 	df.drop(labels=['date','Hour'],axis=1,inplace=True)
 	dm = dict()
 	#convert numerical values to float for scaling and pca
 	for i, key in enumerate(df.columns):
 		dm[key]=df.iloc[:,i].values.astype('float').flatten()
 		dm[key]=dm[key].reshape(1,dm[key].shape[0])
+	dm['date'] = date
 	return dm
 
 

@@ -4,8 +4,22 @@
 #-cluster at each airport individually (total 24 features)
 #-cluster using features from all airports (total 24x3 features): regional clusters
 
+import os
+import glob
+from traffic_bias import generate_hourly_traffic
+from traffic_bias import traffic_bias_weights
+from filtering import clean_frame
+from filtering import weighted_average
+from filtering import data_matrix
+from sklearn.cluster import KMeans
+from sklearn.cluster import DBSCAN
+from sklearn.preprocessing import scale
+import numpy as np
+import pandas as pd
+from datetime import datetime
 
-#input data source = METAR + ASPM
+
+#input data source = METAR + ASPM.
 
 #1. loop thru airports {JFK, LGA, EWR}
 #2. loop thru years 2010-2013
@@ -36,19 +50,33 @@ for year in years:
 block_size = 3
 #but only do it if we have 24 obs that day (otherwise don't include that day)
 #note block_size divides 24 evenly
-wind_speed_list_max=[np.max(a['Wind_SpeedMPH'].reshape(-1,block_size),1) for a in dmlist \
-			if a['Wind_SpeedMPH'].shape[1]==24]
+
+#get list of dates when we have a full set of 24 obs/day
+fullDay=[a for a in dmlist if (a['Wind_SpeedMPH'].shape[1]==24 and \
+	a['VisibilityMPH'].shape[1]==24)]
+
+#From METAR this are '%Y-%m-%d' format
+fullDayDates=pd.to_datetime([a['date'] for a in fullDay])
+#Convert to '%d/%m/%y' to key traffic Data frame (date format for ASPM)
+METARdates=[d.strftime('%m/%d/%Y') for d in fullDayDates]
+
+wind_speed_list_max=[np.max(a['Wind_SpeedMPH'].reshape(-1,block_size),1) for a in fullDay]
+			
 #now stack rows: columns are 3 hour (or generally block_size) blocks
 wind_speed_max=np.vstack(wind_speed_list_max)
 #do same for visibility
-vis_list_min=[np.min(a['VisibilityMPH'].reshape(-1,block_size),1) for a in dmlist \
-			if a['VisibilityMPH'].shape[1]==24]
+vis_list_min=[np.min(a['VisibilityMPH'].reshape(-1,block_size),1) for a in fullDay]
+			
 
 vis_min = np.vstack(vis_list_min)
+
+
 
 #get traffic - note this takes all CSV files from 2010-2013
 #and generates a two-level (day, hour) dataframe with Departures and Arrivals
 trafDF=generate_hourly_traffic(airport_code = airport_abbrv)
+#Now only select dates that were used for METAR data
+trafDF=trafDF.ix[METARdates]
 #now create an numpy array to reshape and block max like above features
 #.unstack() gives Hour as columns, Dates as rows
 #.A selects arrivals
@@ -57,5 +85,4 @@ trafDF=generate_hourly_traffic(airport_code = airport_abbrv)
 arrivals_max=np.max(trafDF.unstack().A.as_matrix().reshape(-1,8,3),axis=2)
 
 #now make a data matrix
-#TODO: figure out how to consistently select same dates for wind,vis,arrivals
-datmat=np.concatenate((vis_min,wind_speed_max),axis=1)
+datmat=np.concatenate((vis_min,wind_speed_max,arrivals_max),axis=1)
