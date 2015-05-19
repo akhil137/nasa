@@ -119,10 +119,21 @@ for a in featureNames:
 #now cluster
 datadir='/Users/ashah/NoBackup/code/nasa/data/METAR/'
 
-for airport_code in ['JFK','LGA','EWR']:
+
+#we'll store each airport's dataframe of dates/data in a dictionary
+nyregion=dict()
+nyregion_airports=['JFK','LGA','EWR']
+
+for airport_code in nyregion_airports:
+	print 'extracting %s' %(airport_code)
 	afeat = extract_expert_features(airport_code,block_size)
 	dayMat = afeat['dates']
 	datMat = afeat['data']
+	#store the data in dataframe for later 'join' operation
+	#first create the date index for the dataframe - series must be 1d
+	dates_index = pd.Series(dayMat.reshape(-1,))
+	#now create the dataframe itself with above date Series as indices
+	nyregion[airport_code] = pd.DataFrame(datMat,index=dates_index)
 
 	number_of_clusters=[5,10,20]
 	for numclusters in number_of_clusters:
@@ -138,3 +149,36 @@ for airport_code in ['JFK','LGA','EWR']:
 		head = 'date,cluster,' + ','.join(features)
 		np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head)
 
+#create a regional feature matrix - 
+#using 24 features from each airport for 3hour block avgs of {vis,windspeed,arrivals}
+#See pd.concat docs:axis=1 means concat columns; 
+#					join='inner' means take intersection of index (dates in common)
+nyregionDataFrame = pd.concat(nyregion,join='inner',axis=1)
+
+#Turn feat matrix into dayMat and datMat
+
+#now cluster on regional features
+dayMat = nyregionDataFrame.index.values.reshape(-1,1) #reshaped to a column vector
+datMat = nyregionDataFrame.values
+
+#reuse above procedure for clustering and writing results to file
+features=list()
+for airport_code in nyregion_airports:
+	for a in featureNames:
+		for i in range(24/block_size):
+			features.append(airport_code+'_timeBlock_'+str(i+1)+'_'+a)
+
+airport_code = 'NYRegion'
+number_of_clusters=[5,10,20]
+for numclusters in number_of_clusters:
+	kmeans = KMeans(init='k-means++', n_clusters=numclusters, n_init=10)
+	#scale 
+	labels=kmeans.fit_predict(scale(datMat))
+	#The webapp preferes cluster labels to start at 1
+	labels=labels.reshape(labels.shape[0],1)+1
+	#concatenate
+	kmeans_output = np.hstack((dayMat,labels,datMat))
+	#write to file
+	outfile = airport_code+'expert_kmeans'+'_'+str(numclusters)+'.csv'
+	head = 'date,cluster,' + ','.join(features)
+	np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head)
