@@ -87,7 +87,7 @@ def get_events(filename):
 #---script---
 
 #use the cluster results file to get a cluster-date dictionary
-cluster_day = get_cluster_members('JFKexpert_kmeans_5.csv')
+cluster_day = get_cluster_members('../results/JFKexpert_kmeans_5.csv')
 #now get the corresponding list of METAR files
 datadir = '/Users/ashah/NoBackup/code/nasa/data/METAR/'
 filelist = list_METAR_files_of_cluster(cluster_day,datadir,'JFK')
