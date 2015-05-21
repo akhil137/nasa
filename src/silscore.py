@@ -43,6 +43,7 @@ def compute_sil_score_vector(filelist):
 
 cluster_results_dir = '/Users/ashah/NoBackup/code/nasa/results'
 
+
 for airport_abbrv in ['JFK','EWR','LGA','NYRegion']:
 	filelist=glob.glob(os.path.join(cluster_results_dir,airport_abbrv+'*.csv'))
 	silscore = compute_sil_score_vector(filelist)
@@ -56,6 +57,7 @@ for airport_abbrv in ['JFK','EWR','LGA','NYRegion']:
 	nc,ms = zip(*[(k,v.mean()) for k,v in silscore.iteritems()])
 	ax1.set_ylabel("Average silhouette coefficient")
 	ax1.scatter(nc,ms, marker='.', s=60, lw=0, alpha=0.7)
-	plt.show()
+	plot_filename = os.path.join(cluster_results_dir,airport_abbrv+'_expert_silscore')
+	plt.savefig(plot_filename,ext='png',transparent=True)
 
 

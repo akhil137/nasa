@@ -58,7 +58,7 @@ def get_events(filename):
 	and parse appropriate columns
 	Keyword arguments: 
 	@filename -- string: name of csv file
-	@returns -- pandas data frame
+	@returns -- pandas data frame of Events and Conditions from METAR
 
 	"""
 	df = pd.read_csv(filename)
@@ -85,43 +85,102 @@ def get_events(filename):
 
 
 #---script---
+#--outputs concurenccy tables formatted for LaTeX
 
-#use the cluster results file to get a cluster-date dictionary
-cluster_day = get_cluster_members('../results/JFKexpert_kmeans_5.csv')
-#now get the corresponding list of METAR files
+
+
 datadir = '/Users/ashah/NoBackup/code/nasa/data/METAR/'
-filelist = list_METAR_files_of_cluster(cluster_day,datadir,'JFK')
+cluster_results_dir = '/Users/ashah/NoBackup/code/nasa/results'
+#define tex output file to write concurrency table to
+filename = os.path.join(cluster_results_dir,'concurrency.tex')
+texfile = open(filename,'w')
 
-#now read the METAR data to get events and conditions categoricals
-dfcat=pd.DataFrame()
-for filepath in filelist:
-	dfcat=dfcat.append(get_events(filepath))
+#--for now: only run this for 5-cluster kmeans results
+num_clusters = 5
+for airport_abbrv in ['JFK','EWR','LGA']:
+	cluster_files=glob.glob(os.path.join(cluster_results_dir,\
+		airport_abbrv+'*'+str(num_clusters)+'.csv'))
+	
+	#use the cluster results file to get a cluster-date dictionary	
+	for f in cluster_files:
 
-#Loop through dates and count conditions
-#date_cond is dictionary with
-#keys = dates
-#values = Counter object with condition keys and count values
-date_cond=dict()
-gd=dfcat.groupby('date')
-for key in pd.unique(dfcat['date']).tolist():
-	date = pd.to_datetime(key).strftime('%m/%d/%Y')
-	date_cond[date]=Counter(gd.get_group(key).Conditions)
+		cluster_day = get_cluster_members(f)
+		#now get the corresponding list of METAR files
+		filelist = list_METAR_files_of_cluster(cluster_day,datadir,airport_abbrv)
 
-#Loop through dates and count conditions
-#cluster_cond is a dictionary with
-#keys = cluster labels
-#values = Counter object with condition keys and count values
-#aggregrated over all days that are part of the given cluster label
-cluster_cond=dict()
-cluster_total=Counter()
-for cluster_label in cluster_day.keys():
-	for date in cluster_day[cluster_label]:
-		cluster_total += date_cond[date]
-	cluster_cond[cluster_label] = cluster_total
+		#now read the METAR data to get events and conditions categoricals
+		dfcat=pd.DataFrame()
+		for filepath in filelist:
+			dfcat=dfcat.append(get_events(filepath))
 
-#for easy manipulation - store as a dataframe
-ccc = pd.DataFrame(cluster_cond)
+		#Loop through dates and count conditions
+		#date_cond is dictionary with
+		#keys = dates
+		#values = Counter object with condition keys and count values
+		date_cond=dict() 
+		 
+		gd=dfcat.groupby('date')
+		for key in pd.unique(dfcat['date']).tolist():
+			date = pd.to_datetime(key).strftime('%m/%d/%Y')
+			date_cond[date]=Counter(gd.get_group(key).Conditions)
 
+
+		texfile.write('Condition Concurrency Tables for airport:%s' \
+		% airport_abbrv)
+		texfile.write('Using results from:%s\n' % f)
+
+		#Loop through dates and count conditions
+		#cluster_cond is a dictionary with
+		#keys = cluster labels
+		#values = Counter object with condition keys and count values
+		#aggregrated over all days that are part of the given cluster label
+		
+		##--ALL---##
+		#for a given day, store all 24 of the observed conditions
+		cluster_cond=dict()
+		cluster_total=Counter()
+		for cluster_label in cluster_day.keys():
+			for date in cluster_day[cluster_label]:
+				cluster_total += date_cond[date]
+			cluster_cond[cluster_label] = cluster_total
+
+		#for easy manipulation - store as a dataframe
+		ccc = pd.DataFrame(cluster_cond)
+		texfile.write('Day-Aggregrated counts:\n')
+		ccc.to_latex(buf=texfile)
+		
+		##--MOST---##
+		#for a given day, store the most common condition
+		cluster_cond_most=dict()
+		cluster_total=Counter()
+		for cluster_label in cluster_day.keys():
+			for date in cluster_day[cluster_label]:
+				condition, count = date_cond[date].most_common()[0]
+				cluster_total += Counter({condition:count})
+			cluster_cond_most[cluster_label] = cluster_total
+
+		#for easy manipulation - store as a dataframe
+		ccc_most = pd.DataFrame(cluster_cond_most)
+		texfile.write('Day-Most frequent counts:\n')
+		ccc_most.to_latex(buf=texfile)
+
+		##--LEAST---##
+		#for a given day, store the least common condition
+		cluster_cond_least=dict()
+		cluster_total=Counter()
+		for cluster_label in cluster_day.keys():
+			for date in cluster_day[cluster_label]:
+				condition, count = date_cond[date].most_common()[-1]
+				cluster_total += Counter({condition:count})
+			cluster_cond_least[cluster_label] = cluster_total
+
+		#for easy manipulation - store as a dataframe
+		
+		ccc_least = pd.DataFrame(cluster_cond_least)
+		texfile.write('Day-Least frequent counts:\n')
+		ccc_least.to_latex(buf=texfile)
+
+texfile.close()
 
 
 
