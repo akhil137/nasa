@@ -14,9 +14,43 @@
 %\date{}
 \begin{document}
 \maketitle
+
+
 \section*{Executive Summary}
+
+Note that the 
+
+\begin{itemize}
+\item why cluster similar days? analysis of tfmi must account for conditions, which this 
+helps 
+\item web-based app - helps users explore and visualize clusters.  We use k-means and DBSCAN
+\item use observed and forecasted weather/traffic features, mostly selected by expert judgement.  Also used PCA.
+\item list of data sources that were used
+\item results depend on \{feature selection methodology, clustering algo, and data\}.  little evidence days are arranged in clusters.  but we provide guidance on selecting a triplicate based on how the results of the analysis are to be used.
+\end{itemize}
+The primary purpose of this phase of our study was to investigate various methodologies for clustering similar days using Airport level data.  We have derived clusters of similar days using the following sequence of steps: selecting data feature upon which to cluster, the clustering algorithm, and the method by which to choose the algorithmic parameters.  Each of the various methodologies we have explored is thus distinguished by the choice made in each of those steps.  In the table below we summarize our choices for each of these options
+
+\begin{table}[htdp]
+\caption{default}
+\begin{center}
+\begin{tabular}{|c|c|c|}
+Option & Feature selection & Clustering Algorithm\\
+\hline 
+1 & Knowledge based & K-means\\
+2 & Traffic Biasing & K-means\\ 
+3 & Subset PCA & K-means\\ 
+2 & Traffic Biasing & DBSCAN\\ 
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+
+It is important to note that the dominant factor which determines the quality of any machine learning (or more generally, statistical model) approach is the selection of features that are most relevant rather than the choice of prediction or clustering algorithms.  Generally, the best source for relevant features are derived from expert domain knowledge.  However machine learning methods for feature selection can complement such expert elicitation by quantifying the relevance of each feature.  Moreover feature selection methods usually rely on having a dataset with accompanying ground truth labels.  For example, if we were interested in determining which weather and traffic features were most relevant to predicting a Ground Delay Program (GDP) on any given day, the feature selection algorithm would requiring a ``training" dataset that included not only the predictors (weather and traffic) but also the observed ground-truth label of absence or presence of GDP for each data record \cite{mukherjeepredicting}.  At this phase of our study, we do not have ground-truth labels that would enable us to employ the various feature selection methods \cite{guyon2003introduction}.  
+
+Although there are proposals for selecting features without ground-truth labels, they rely on having an underlying statistical model for the joint distribution of predictors and prediticand \cite{cai2010unsupervised,Roth04featureselection}.  An alternative approach may be to cull a given set of features until an optimal clustering quality criterion (e.g. Silouhette width) is achieved.  However such a combinatorial optimization would grow exponentially with the dimension of the feature space, which can be quite large for even if we restrict ourselves to only ASPM arrival and departure data (24 observations/day $\times$  (11 METAR + 2 ASPM) $\times$ 3 Airports in the NY region).  Hence such a combinatorial optimization approach is likely infeasible and moreover may not yield predictive features when accompanied by ground-truth labels from TFMI data.  (insert?: Thus we will wait until we acquire TFMI data to perform quantitative feature selection).  Instead in this phase we have applied heuristic methods described in the above table, such as Traffic biasing, which employs some domain knowledge in reducing the 24 observations per day using a weighted average derived from the historical hourly arrival rates at each airport. 
+
 \section*{Introduction and Context}
-Personnel at the Federal Aviation AdministrationÕs Air Traffic Control System Command Center and at airline operations centers regularly implement Air Traffic Flow Management Initiatives (ATFMIs) purposefully delaying, canceling, and rerouting flights. These initiatives increase the safety and efficiency of the nationÕs air transportation system, for example by replacing airborne delay with ground delay, and are necessary during inclement weather and in other situations where demand for system resources exceeds capacity.  In particular, problems at airports often create the need for ATFMIs.  Analysis of the past use of ATFMIs can demonstrate the relative success of courses of action but must account for the distinct conditions faced during planning and operations.  An identification of days that are similar can help, for example allowing analysts to focus on the 10 days in the past two years when there was thunderstorm activity at the key airports in the New York area between 8am and 11am, local time, but clear weather the rest of the day.
+Personnel at the Federal Aviation Administration's Air Traffic Control System Command Center and at airline operations centers regularly implement Air Traffic Flow Management Initiatives (ATFMIs) purposefully delaying, canceling, and rerouting flights. These initiatives increase the safety and efficiency of the nationÕs air transportation system, for example by replacing airborne delay with ground delay, and are necessary during inclement weather and in other situations where demand for system resources exceeds capacity.  In particular, problems at airports often create the need for ATFMIs.  Analysis of the past use of ATFMIs can demonstrate the relative success of courses of action but must account for the distinct conditions faced during planning and operations.  An identification of days that are similar can help, for example allowing analysts to focus on the 10 days in the past two years when there was thunderstorm activity at the key airports in the New York area between 8am and 11am, local time, but clear weather the rest of the day.
 
 This report describes our work to develop methodologies for the identification similar days in terms of aviation weather and air traffic operations at the airports in the New York area.  There are many reasons why an analyst may want to identify similar days and thus there are multiple ways to arrive at a definition of similar days.  This report follows an earlier report to identify similar days based on conditions in the airspace around New York City.  We do not wish to replicate the prior report and thus only report on new findings specific to our study of airports.  The earlier report includes more detail regarding why it would be beneficial to identify similar days from the perspective of ATFMI planning or operations.
 
@@ -46,9 +80,60 @@ For now, we note that a collection of hourly observations of TAF and METAR data,
 
 Traffic flow management is concerned with mitigating temporary supply and demand imbalances. At the level of an airport, the primary concern is almost always that the number of aircraft scheduled to land at and take off across a set block of time may be higher than the throughput of the runways will allow. A reasonable length for such a block of time would be an hour or a few hours. Supply-demand imbalances over shorter periods of time, e.g., two aircraft scheduled to land at the same time, can be accommodated with minor path adjustments rather than the more strategic traffic flow management initiatives. Hourly observations of scheduled operations could be easily compared to weather data such as TAFs and METARs that are reported hourly. A collection of hourly observations of the numbers of aircraft scheduled to land at and take off from the busiest airports in the New York area would be an ideal data set here.
 
-Our definition of the ideal data set for describing airport weather referenced TAFs and METARs, two formats airports currently use in their reports. Current TAF and current METAR data are available. METAR data has been collected in a publicly accessible historical archive. Unfortunately, we have not identified a similar large archive of historical TAF data. This result is unsurprising; there are relatively many uses for historical observations of weather conditions and relatively few for historical forecasts. Luckily, there is an alternate data source that does contain both forecast and observed weather at airports. The National Oceanic and Atmospheric AdministrationÕs (NOAAÕs) Localized Aviation MOS (Model Output Statistics) Product (LAMP) combines much of the same data that appears in TAF and METAR data. This data is free to download from NOAA. Table 1 summarizes the availability of useful airport weather data.
+Our definition of the ideal data set for describing airport weather referenced TAFs and METARs, two formats airports currently use in their reports. Current TAF and current METAR data are available. METAR data has been collected in a publicly accessible historical archive. Unfortunately, we have not identified a similar large archive of historical TAF data. This result is unsurprising; there are relatively many uses for historical observations of weather conditions and relatively few for historical forecasts. Luckily, there is an alternate data source that does contain both forecast and observed weather at airports. The National Oceanic and Atmospheric Administration's (NOAAs) Localized Aviation MOS (Model Output Statistics) Product (LAMP) combines much of the same data that appears in TAF and METAR data. This data is free to download from NOAA. Table 1 summarizes the availability of useful airport weather data.
+
+\begin{table}[htdp]
+\caption{Summary of Airport Data}
+\begin{center}
+\begin{tabular}{|c|c||c|}
+Name & Feature & Notes
+
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}%
+
+\subsection{LAMP Data details}
+The forecasting model runs hourly and goes out to 25 hours for CONUS, Hawaii, Alaska and Puerto Rico.
+
+
+data source 1: surface obs
+Most useful predictors for LAMP are recent surface obs and Global Forecasting System (GFS) Model Output Statistics (MOS) guidance (run four times daily).  Main premise of LAMP is that most recent surface obs (mostly METAR reports, used as reported after undergoing quality control checks) can have strong predictive value in updating MOS.  
+
+data source 2: radar and observed lightning
+Radar data (16-level 2km WSI and 7-level 10km RCM) used as predictors for thunderstorm development.  Observed lightning from National Lightning Detection Network used in development of thunderstorm probabilities. 
+
+predictands (observables that are forecasted)
+Categories below are detailed in (insert LAMP reference)
+ 
+*	Prob. of precipitation > 0.01 inches in 6 or 12h period
+*	Precipitation type (liquid, snow, freezing) conditional on precipitation occuring
+*	Prob of ceiling height belonging to a fixed set of altitudes 
+*	Prob of total sky cover belonging to a fixed set of categories (e.g. clear, few, overcast, etc.)
+*	Prob of visibility belonging to a fixed set of ranges
+*	Prob of obstruction to vision belonging to a fixed set of categories (e.g. haze, mist, fog, etc.)
+*	Probability of thunderstorm in 2h bins (for 25h out since start of LAMP run)
+
+\subsection{METAR data details}
+Metar features are observed hourly: temperature, dew point, humidity, sea-level pressure, visibility, wind direction, wind speed, gust speed, precipitation, condition code, event code.  
+
+
+Those that are Likely relevant
+*	Cloud info ('clear sky', 'sun')
+*	Cloud type ('none', )
+*	Sky Conditions ('clear', )
+*	Visibility (e.g. 16km)
+*	Wind speed (11.3 knots)
+*	Wind chill (e.g. 57F)
+*	Weather ('Overcast')
+
+Perhaps relevant
+*	Relative Humidity -  may be relevant since it is probably used as a predictor of precipitation in forecasting models?
+*	Pressure (1018 hPa)
+*	Pressure tendency (3.1 hPa higher than 3 hours ago)
+
 \section*{Results and Discussion}
-Note that
+
 
 %%%concurrency table
 \section*{Assessing Clusters}
