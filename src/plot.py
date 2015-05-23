@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-"ref: http://matplotlib.org/examples/style_sheets/plot_bmh.html"
+#"ref: http://matplotlib.org/examples/style_sheets/plot_bmh.html"
 #doesn't work with our version of matplotlib
 # plt.style.use('bmh')
 # def plot_hist_data_matrix(dm):
@@ -102,15 +102,18 @@ dfall['year']=[pd.to_datetime(a).year for a in dfall['date']]
 features=['Humidity', 'PrecipitationIn', 'TemperatureF','VisibilityMPH', 'Wind_SpeedMPH']
 
 #yearly variation of all features above
-plt.figure(1)
+axdict=dict()
+#plt.figure(1)
 for i,f in enumerate(features):
-	plt.figure(1)
 	ax=plt.subplot(2,3,i)
-	dfall.boxplot(column=f,by='year',ax=ax)
+	ax.set_ylabel(f)
+	#ax.set_xlabel('year')
+	axdict[f]=dfall.boxplot(column=f,by='year',ax=ax)#,layout=(3,2))
 plt.show()
 
 #scatter plots of feature combinations taken two at a time
 import itertools
+
 plt.figure(2)
 for i,f in enumerate(itertools.combinations(features,2)):
 	plt.figure(2)
