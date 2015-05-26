@@ -45,7 +45,7 @@ Option & Feature selection & Clustering Algorithm\\
 \label{default}
 \end{table}%
 
-It is important to note that the dominant factor which determines the quality of any machine learning (or more generally, statistical model) approach is the selection of features that are most relevant rather than the choice of prediction or clustering algorithms.  Generally, the best source for relevant features are derived from expert domain knowledge.  However machine learning methods for feature selection can complement such expert elicitation by quantifying the relevance of each feature.  Moreover feature selection methods usually rely on having a dataset with accompanying ground truth labels.  For example, if we were interested in determining which weather and traffic features were most relevant to predicting a Ground Delay Program (GDP) on any given day, the feature selection algorithm would requiring a ``training" dataset that included not only the predictors (weather and traffic) but also the observed ground-truth label of absence or presence of GDP for each data record \cite{mukherjeepredicting}.  At this phase of our study, we do not have ground-truth labels that would enable us to employ the various feature selection methods \cite{guyon2003introduction}.  
+It is important to note that the dominant factor which determines the quality of any machine learning (or more generally, statistical model) approach is the selection of features that are most relevant rather than the choice of prediction or clustering algorithms.  Generally, the best source for relevant features are derived from expert domain knowledge.  However machine learning methods for feature selection can complement such expert elicitation by quantifying the relevance of each feature.  Moreover feature selection methods usually rely on having a dataset with accompanying ground truth labels.  For example, if we were interested in determining which weather and traffic features were most relevant to predicting a Ground Delay Program (GDP) on any given day, the feature selection algorithm would require a ``training" dataset that included not only the predictors (weather and traffic) but also the observed ground-truth label of absence or presence of GDP for each data record \cite{mukherjeepredicting}.  The goals of this algorithm would be to model current GDP decision making and/or to forecast future GDP decisions.  Our goal was somewhat different, to explore, characterize, and categorize airport weather and traffic conditions without modeling current GDP decision making.  Therefore, it was not appropriate, for our study, to use any sort of ground-truth labels.  The lack of ground-truth labels rules out various feature selection methods \cite{guyon2003introduction}.  Methods for feature selection and cluster analysis in an `unsupervised' environment like ours are often based on finding the most clearly defined clusters possible.  While we are interested in finding clearly defined clusters, where possible, we are most interested in identifying features that summarize and characterize how analysts and air traffic control planners describe airport weather and air traffic at airports\dots
 
 
 \section*{Introduction and Context}
@@ -114,13 +114,15 @@ Name & Feature & Notes
 An overview of LAMP can be found in \cite{ghirardelli2005overview}.  In summary, the LAMP forecasting model runs hourly and goes out to 25 hours for CONUS, Hawaii, Alaska and Puerto Rico.  For data sources it uses both surface observations and radar data.  The main premise of LAMP is that most recent surface obs (mostly METAR reports, used as reported after undergoing quality control checks) can have strong predictive value in updating MOS. Radar data (16-level 2km WSI and 7-level 10km RCM) used as predictors for thunderstorm development.  Observed lightning from National Lightning Detection Network used in development of thunderstorm probabilities. 
 
 The following are forecasted by LAMP:
-*	Prob. of precipitation > 0.01 inches in 6 or 12h period
-*	Precipitation type (liquid, snow, freezing) conditional on precipitation occuring
-*	Prob of ceiling height belonging to a fixed set of altitudes 
-*	Prob of total sky cover belonging to a fixed set of categories (e.g. clear, few, overcast, etc.)
-*	Prob of visibility belonging to a fixed set of ranges
-*	Prob of obstruction to vision belonging to a fixed set of categories (e.g. haze, mist, fog, etc.)
-*	Probability of thunderstorm in 2h bins (for 25h out since start of LAMP run)
+\begin{itemize}
+\item{Prob. of precipitation $>$ 0.01 inches in 6 or 12h period}
+\item{Precipitation type (liquid, snow, freezing) conditional on precipitation occurring}
+\item{Probability of ceiling height belonging to a fixed set of altitudes}
+\item{Probability of total sky cover belonging to a fixed set of categories (e.g. clear, few, overcast, etc.)}
+\item{Probability of visibility belonging to a fixed set of ranges}
+\item{Probability of obstruction to vision belonging to a fixed set of categories (e.g. haze, mist, fog, etc.)}
+\item{Probability of thunderstorm in 2h bins (for 25h out since start of LAMP run)}
+\end{itemize}
 
 \subsection*{METAR data details}
 Metar features are observed hourly: temperature, dew point, humidity, sea-level pressure, visibility, wind direction, wind speed, gust speed, precipitation, condition code, event code.  
@@ -159,15 +161,15 @@ Variation over years of selected METAR weather variables every year.
 
 %%%concurrency table
 \subsection*{Assessing Clusters}
-When ground-truth labels are available, clusters can be assessed by various quantitative metrics that characterize the intra-cluster similarity of those labels versus the inter-cluster similarity of labels.  One example of such a metric is the RAND index, but there are various others.  More generally a ``confusion matrix" is a standard representation in Machine Learning to present the accuracy of clustering-algorithm in assigning samples to clusters when the groud-truth assignment label is known.  
+When ground-truth labels are available, clusters can be assessed by various quantitative metrics that characterize the intra-cluster similarity of those labels versus the inter-cluster similarity of labels.  One example of such a metric is the RAND index, but there are various others.  More generally a ``confusion matrix" is a standard representation in Machine Learning to present the accuracy of an algorithm that models a categorial variable.  Typically, a model that has been fit using a training data set is asked to forecast the categorical variable in a distinct test data set.  The rows of the confusion matrix represent the actual values of the categorical variable in the test data set while the columns represent the model output values of the categorical variable using the model inputs from the test data set.  Each cell in the matrix is a count showing how many times the model predicted label x (column) when the actual observation was was label y (row).
 
-Although there are proposals for selecting features without ground-truth labels, they rely on having an underlying statistical model for the joint distribution of predictors and prediticand \cite{cai2010unsupervised,Roth04featureselection}.  An alternative approach may be to cull a given set of features until an optimal clustering quality criterion (e.g. Silouhette width) is achieved.  However such a combinatorial optimization would grow exponentially with the dimension of the feature space, which can be quite large for even if we restrict ourselves to only ASPM arrival and departure data (24 observations/day $\times$  (11 METAR + 2 ASPM) $\times$ 3 Airports in the NY region).  Hence such a combinatorial optimization approach is likely infeasible and moreover may not yield predictive features when accompanied by ground-truth labels from TFMI data.  (insert?: Thus we will wait until we acquire TFMI data to perform quantitative feature selection).  Instead in this phase we have applied heuristic methods described in the above table, such as Traffic biasing, which employs some domain knowledge in reducing the 24 observations per day using a weighted average derived from the historical hourly arrival rates at each airport. 
+Although there are proposals for selecting features without ground-truth labels, they rely on having an underlying statistical model for the joint distribution of predictors and prediticand \cite{cai2010unsupervised,Roth04featureselection}.  An alternative approach may be to cull a given set of features until an optimal clustering quality criterion (e.g. Silouhette width) is achieved.  However such a combinatorial optimization would grow exponentially with the dimension of the feature space, which can be quite large for even if we restrict ourselves to only ASPM arrival and departure data (24 observations/day $\times$  (11 METAR + 2 ASPM) $\times$ 3 Airports in the NY region).  Hence such a combinatorial optimization approach is likely infeasible and moreover may not yield features that adequately characterize how expert and planners conceive of days, which is our primary goal. Instead in this phase we have applied heuristic methods described in the above table, such as Traffic biasing, which employs some domain knowledge in reducing the 24 observations per day using a weighted average derived from the historical hourly arrival rates at each airport. 
 
-In the absence of such ground-truth cluster assignment labels, one can use an intrinsic measure of intra-cluster versus inter-cluster similarity such as the Silhouette score.  If the data are numeric this metric can be computed for each sample using for example the euclidean distance metric\footnote{If the clustering algorithm used a distance measure, rather than a similarity matrix to assign the clusters in the first place, it is more natural to use the same distance metric in computing the Silhouette score}.  
+Although we do not wish to optimize measures of intra-cluster versus inter-cluster similarity such as the Silhouette score, we are still interested in such scores.  If the data are numeric this metric can be computed for each sample using for example the euclidean distance metric\footnote{If the clustering algorithm used a distance measure, rather than a similarity matrix to assign the clusters in the first place, it is more natural to use the same distance metric in computing the Silhouette score}.  
 
 In addition, we propose a novel method to use categorical data as ``psuedo-labels" for each observation.  The data we use for these psuedo-labels are the observed ``Condition" data column of METAR data, a categorical value.  Each day (sample of our data-matrix) has 24 such values and we propose three types of concurrency tables which allow use to analyze the similarity within and between the clusters using the frequency of occurrence of those categorical values.
 \subsection*{Concurrency Tables}
-Condition Concurrency Tables for airport:JFK
+The Condition data within METAR data describe weather conditions at an airport using a categorical variable.  The data are not ground-truth labels in the sense that we would explicitly seek to build a model of this data or claim that the data adequately summarize airport weather data for air traffic flow management initiative planning.  However, it is worthwhile to compare the results of cluster analysis to the Condition data, to see if, for example, days with the Condition label of ``Thunderstorm'' appear in one cluster while days with the Condition label of ``Clear'' appear in another cluster.  To explore the relationship between the METAR Condition data and identified clusters, we created concurrency tables.  The idea is similar to that of the Confusion Matrix described above.  Each row in a concurrency table refers to a specific Condition label and each column to a specific cluster output by a clustering algorithm.  Each cell in a concurrency table contains a count of the number of times a day was assigned to a specific Condition label (row) according to observed METAR data and a specific cluster (column) according to the results of a specific form of cluster analysis.
 
 %Using results from:
 %/Users/ashah/NoBackup/code/nasa/results/JFKexpert_kmeans_5.csv
@@ -474,15 +476,15 @@ Thunderstorms and Rain       &    4 &   12 &   21 &   21 &   21 \\
 %\lstinputlisting{/Users/ashah/NoBackup/code/nasa/src/filtering.py}
 
 %%--graphics here-%%%
-\begin{figure}[htbp]
-\begin{center}
+%\begin{figure}[htbp]
+%\begin{center}
 
-\includegraphics[scale=0.5]{./figures/EWR_expert_silscore.png}
+%\includegraphics[scale=0.5]{./figures/EWR_expert_silscore.png}
 
-\caption{a caption for the graphic}
-\label{default}
-\end{center}
-\end{figure}
+%\caption{a caption for the graphic}
+%\label{default}
+%\end{center}
+%\end{figure}
 
 %%--graphics here-%%%
 \begin{figure}[htbp]

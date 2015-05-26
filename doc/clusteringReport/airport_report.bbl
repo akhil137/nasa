@@ -1,0 +1,52 @@
+\begin{thebibliography}{1}
+
+\bibitem{cai2010unsupervised}
+D.~Cai, C.~Zhang, and X.~He.
+\newblock Unsupervised feature selection for multi-cluster data.
+\newblock In {\em Proceedings of the 16th ACM SIGKDD international conference
+  on Knowledge discovery and data mining}, pages 333--342. ACM, 2010.
+
+\bibitem{grabbe2013similar}
+S.~Grabbe, B.~Sridhar, and A.~Mukherjee.
+\newblock Similar days in the nas: an airport perspective.
+\newblock In {\em AIAA Aviation Technology, Integration, and Operations (ATIO)
+  Conference}, 2013.
+
+\bibitem{guyon2003introduction}
+I.~Guyon and A.~Elisseeff.
+\newblock An introduction to variable and feature selection.
+\newblock {\em The Journal of Machine Learning Research}, 3:1157--1182, 2003.
+
+\bibitem{mukherjeepredicting}
+A.~Mukherjee, S.~Grabbe, and B.~Sridhar.
+\newblock Predicting ground delay program at an airport based on meteorological
+  conditions.
+
+\bibitem{Roth04featureselection}
+V.~Roth and T.~Lange.
+\newblock Feature selection in clustering problems.
+\newblock In {\em In Advances in Neural Information Processing Systems 16}. MIT
+  Press, 2004.
+
+\bibitem{smith2009decision}
+D.~Smith and L.~Sherry.
+\newblock Decision support tool for predicting ground delay programs (gdp) and
+  airport delays from weather forecast data.
+\newblock In {\em Annual Transportation Research Board (TRB) Conference,
+  Washington, DC}, 2009.
+
+\bibitem{wolfe2011method}
+S.~R. Wolfe and J.~L. Rios.
+\newblock A method for using historical ground delay programs to inform
+  day-of-operations programs.
+\newblock In {\em Proc. of AIAA Guidance, Navigation, and Control Conference},
+  2011.
+
+\bibitem{liu2014}
+L.~Yi, M.~Hansen, A.~Pozdnukhov, and M.~Ball.
+\newblock Assessing terminal weather forecast similarity for strategic air
+  traffic management.
+\newblock {\em Sixth International Conference on Research in Air
+  Transportation}, May 2014.
+
+\end{thebibliography}
