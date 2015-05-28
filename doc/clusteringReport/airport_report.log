@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  26 MAY 2015 09:23
+This is pdfTeX, Version 3.1415926-2.5-1.40.14 (TeX Live 2013) (format=pdflatex 2013.5.30)  28 MAY 2015 15:22
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -267,12 +267,6 @@ LaTeX Warning: Label `default' multiply defined.
 
 LaTeX Warning: Label `default' multiply defined.
 
-
-LaTeX Warning: Label `default' multiply defined.
-
-
-LaTeX Warning: Label `default' multiply defined.
-
 )
 \openout1 = `airport_report.aux'.
 
@@ -297,15 +291,15 @@ LaTeX Font Info:    ... okay on input line 15.
 * layout: <same size as paper>
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
 * modes: 
-* h-part:(L,W,R)=(92.14519pt, 430.00462pt, 92.14519pt)
-* v-part:(T,H,B)=(95.39737pt, 556.47656pt, 143.09605pt)
+* h-part:(L,W,R)=(72.26999pt, 469.75502pt, 72.26999pt)
+* v-part:(T,H,B)=(72.26999pt, 650.43001pt, 72.26999pt)
 * \paperwidth=614.295pt
 * \paperheight=794.96999pt
-* \textwidth=430.00462pt
-* \textheight=556.47656pt
-* \oddsidemargin=19.8752pt
-* \evensidemargin=19.8752pt
-* \topmargin=-14.27263pt
+* \textwidth=469.75502pt
+* \textheight=650.43001pt
+* \oddsidemargin=0.0pt
+* \evensidemargin=0.0pt
+* \topmargin=-37.40001pt
 * \headheight=17.0pt
 * \headsep=20.40001pt
 * \topskip=11.0pt
@@ -347,95 +341,45 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 17.
 (/usr/local/texlive/2013/texmf-dist/tex/latex/amsfonts/umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 )
-LaTeX Font Info:    Try loading font information for OMS+cmr on input line 24.
+Missing character: There is no Õ in font cmr10!
+ [1
 
+
+{/usr/local/texlive/2013/texmf-var/fonts/map/pdftex/updmap/pdftex.map}] [2]
+
+LaTeX Warning: Citation `ghirardelli2005overview' on page 3 undefined on input 
+line 78.
+
+LaTeX Font Info:    Try loading font information for OMS+cmr on input line 82.
 (/usr/local/texlive/2013/texmf-dist/tex/latex/base/omscmr.fd
 File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10.95> not available
-(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 24.
- [1
-
-
-{/usr/local/texlive/2013/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-Missing character: There is no Õ in font cmr10!
- [2] [3] [4] [5]
-[6]
-
-LaTeX Warning: Citation `ghirardelli2005overview' on page 7 undefined on input 
-line 114.
-
-[7] <./figures/boxplot_hourlyvariation.png, id=37, 1730.8665pt x 1011.78pt>
+(Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 82.
+ [3] [4] [5]
+<./figures/boxplot_hourlyvariation.png, id=27, 1730.8665pt x 1011.78pt>
 File: ./figures/boxplot_hourlyvariation.png Graphic file (type png)
 
 <use ./figures/boxplot_hourlyvariation.png>
 Package pdftex.def Info: ./figures/boxplot_hourlyvariation.png used on input li
 ne 140.
 (pdftex.def)             Requested size: 432.71556pt x 252.94438pt.
-
-Overfull \hbox (2.71094pt too wide) in paragraph at lines 140--141
- [] 
- []
-
-<./figures/boxplot_annualvariation.png, id=39, 1297.2465pt x 740.7675pt>
-File: ./figures/boxplot_annualvariation.png Graphic file (type png)
-
-<use ./figures/boxplot_annualvariation.png>
-Package pdftex.def Info: ./figures/boxplot_annualvariation.png used on input li
-ne 152.
-(pdftex.def)             Requested size: 454.04308pt x 259.2725pt.
-
-Overfull \hbox (24.03845pt too wide) in paragraph at lines 152--153
- [] 
- []
-
-[8] [9 <./figures/boxplot_hourlyvariation.png>] [10 <./figures/boxplot_annualva
-riation.png>] [11]
-Overfull \hbox (49.57925pt too wide) in paragraph at lines 177--216
+ [6] [7 <./figures/boxplot_hourlyvariation.png>]
+Overfull \hbox (9.82886pt too wide) in paragraph at lines 159--198
 []\OT1/cmr/m/n/10.95 Day-Aggregrated counts: [] 
  []
 
-[12]
-Overfull \hbox (41.8534pt too wide) in paragraph at lines 241--278
-[]\OT1/cmr/m/n/10.95 Day-Least fre-quent counts: [] 
- []
-
-[13]
-Overfull \hbox (65.91296pt too wide) in paragraph at lines 285--379
+[8] [9]
+Overfull \hbox (26.16257pt too wide) in paragraph at lines 267--361
 []\OT1/cmr/m/n/10.95 Day-Aggregrated counts: []
  []
 
-
-Overfull \hbox (11.92331pt too wide) in paragraph at lines 285--379
-\OT1/cmr/m/n/10.95 Day-Most fre-quent counts: [] Day-
- []
-
-
-Overfull \hbox (7.93877pt too wide) in paragraph at lines 285--379
-\OT1/cmr/m/n/10.95 Least fre-quent counts: []
- []
-
-[14] [15] [16]
-Overfull \hbox (44.10425pt too wide) in paragraph at lines 380--416
+[10]
+Overfull \hbox (4.35385pt too wide) in paragraph at lines 362--398
 []\OT1/cmr/m/n/10.95 Day-Aggregrated counts: [] 
  []
 
-[17] [18]
-Overfull \hbox (36.37839pt too wide) in paragraph at lines 436--468
-[]\OT1/cmr/m/n/10.95 Day-Least fre-quent counts: [] 
- []
-
-File: ./figures/boxplot_annualvariation.png Graphic file (type png)
-<use ./figures/boxplot_annualvariation.png>
-Package pdftex.def Info: ./figures/boxplot_annualvariation.png used on input li
-ne 493.
-(pdftex.def)             Requested size: 454.04308pt x 259.2725pt.
-
-Overfull \hbox (24.03845pt too wide) in paragraph at lines 493--494
- [] 
- []
-
-(./airport_report.bbl [19] [20]) [21] (./airport_report.aux)
+[11] [12] (./airport_report.bbl [13]) [14] (./airport_report.aux)
 
 LaTeX Warning: There were undefined references.
 
@@ -444,13 +388,13 @@ LaTeX Warning: There were multiply-defined labels.
 
  ) 
 Here is how much of TeX's memory you used:
- 4739 strings out of 493315
- 71441 string characters out of 6137904
- 185575 words of memory out of 5000000
- 8119 multiletter control sequences out of 15000+600000
+ 4733 strings out of 493315
+ 71221 string characters out of 6137904
+ 176594 words of memory out of 5000000
+ 8114 multiletter control sequences out of 15000+600000
  15212 words of font info for 59 fonts, out of 8000000 for 9000
  957 hyphenation exceptions out of 8191
- 54i,8n,42p,1965b,270s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 54i,8n,42p,1971b,286s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/local/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb
 ></usr/local/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmex10.pfb>
 </usr/local/texlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmmi10.pfb><
@@ -463,10 +407,10 @@ exlive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmr9.pfb></usr/local/texl
 ive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmssbx10.pfb></usr/local/tex
 live/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmsy10.pfb></usr/local/texl
 ive/2013/texmf-dist/fonts/type1/public/amsfonts/cm/cmti10.pfb>
-Output written on airport_report.pdf (21 pages, 366298 bytes).
+Output written on airport_report.pdf (14 pages, 299826 bytes).
 PDF statistics:
- 125 PDF objects out of 1000 (max. 8388607)
- 85 compressed objects within 1 object stream
+ 101 PDF objects out of 1000 (max. 8388607)
+ 70 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
- 11 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 6 words of extra memory for PDF output out of 10000 (max. 10000000)
 
