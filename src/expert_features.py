@@ -109,11 +109,11 @@ def extract_expert_features(airport_abbrv,block_size=3):
 #feature names: 'timeBlock_4_MinVisibility', etc
 #chop up 24 hours obs into blcok sizes
 block_size=3
-featureNames = ['Min_Visibility','Max_Wind_Speed', 'Max_Arrivals']
+featureNames = ['minvis','maxwspd', 'maxarv']
 features=list()
 for a in featureNames:
 	for i in range(24/block_size):
-		features.append('timeBlock_'+str(i+1)+'_'+a)
+		features.append('t_'+str(i+1)+'_'+a)
 
 
 #now cluster
@@ -147,7 +147,8 @@ for airport_code in nyregion_airports:
 		#write to file
 		outfile = airport_code+'expert_kmeans'+'_'+str(numclusters)+'.csv'
 		head = 'date,cluster,' + ','.join(features)
-		np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head)
+		np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head, \
+			comments='')
 
 #create a regional feature matrix - 
 #using 24 features from each airport for 3hour block avgs of {vis,windspeed,arrivals}
@@ -166,7 +167,7 @@ features=list()
 for airport_code in nyregion_airports:
 	for a in featureNames:
 		for i in range(24/block_size):
-			features.append(airport_code+'_timeBlock_'+str(i+1)+'_'+a)
+			features.append(airport_code+'_t_'+str(i+1)+'_'+a)
 
 airport_code = 'NYRegion'
 number_of_clusters=[5,10,20]
@@ -181,4 +182,6 @@ for numclusters in number_of_clusters:
 	#write to file
 	outfile = airport_code+'expert_kmeans'+'_'+str(numclusters)+'.csv'
 	head = 'date,cluster,' + ','.join(features)
-	np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head)
+	np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head,\
+		comments = '')
+		

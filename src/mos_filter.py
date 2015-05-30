@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 import os
+from sklearn.cluster import KMeans
+from sklearn.preprocessing import scale
 
 datadir='/Users/ashah/NoBackup/code/nasa/data/MOS/'
 airport_abbrv = 'JFK'
@@ -92,10 +94,37 @@ for airport_code in nyregion_airports:
 	df_filtered_joined.to_csv(fn,index=False)
 	fn.close()
 
-#cluster
-datmat=df_filtered_joined.values
-#turn nan to 0
-datmat=np.nan_to_num(datmat)
-daymat=[a.strftime('%m/%d/%Y') for a in df_filtered_joined.index.get_values()]
+	#feature names:
+	features=df_filtered_joined.columns.tolist()
+
+	#cluster
+	datMat=df_filtered_joined.values
+	#turn nan to 0
+	datMat=np.nan_to_num(datMat)
+	#create the dayMat array of proper shape
+	dayMat=np.array([a.strftime('%m/%d/%Y') for a in \
+		df_filtered_joined.index.get_values()])
+
+	dayMat=dayMat.reshape(-1,1)
 
 
+	#store the data in dataframe for later 'join' operation
+	#first create the date index for the dataframe - series must be 1d
+	#dates_index = pd.Series(dayMat.reshape(-1,))
+	#now create the dataframe itself with above date Series as indices
+	#nyregion[airport_code] = pd.DataFrame(datMat,index=dates_index)
+
+	number_of_clusters=[5,10,20]
+	for numclusters in number_of_clusters:
+		kmeans = KMeans(init='k-means++', n_clusters=numclusters, n_init=10)
+		#scale 
+		labels=kmeans.fit_predict(scale(datMat))
+		#The webapp preferes cluster labels to start at 1
+		labels=labels.reshape(labels.shape[0],1)+1
+		#concatenate
+		kmeans_output = np.hstack((dayMat,labels,datMat))
+		#write to file
+		outfile = airport_code+'mos_kmeans'+'_'+str(numclusters)+'.csv'
+		head = 'date,cluster,' + ','.join(features)
+		np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head, \
+			comments='')
