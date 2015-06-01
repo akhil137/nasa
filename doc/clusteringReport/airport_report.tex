@@ -9,7 +9,7 @@
 \usepackage{color}
 \usepackage{booktabs}
 \DeclareGraphicsRule{.tif}{png}{.png}{`convert #1 `dirname #1`/`basename #1 .tif`.png}
-\title{Similar Days at Airports in the New York Area}
+\title{Similar Days at Airports in the New York Area\\ for Air Traffic Flow Management Planning}
 \author{Akhil Shah, Kenneth Kuhn, Chris Skeels}
 %\date{}
 \begin{document}
@@ -17,120 +17,154 @@
 
 
 \section*{Executive Summary}
-This report describes our investigation of various methodologies for clustering calendar days using data summarizing forecast and observed weather and air traffic at key airport in the New York area.  We are primarily interested in identifying sets of similar days where similarity is defined in terms of the conditions that lead to the implementation of various Air Traffic Flow Management Initiatives (ATFMIs) such as Ground Delay Programs (GDPs).  The work here represents a first step toward the construction of a decision support tool for dispatchers at airline operations centers and officials at the Federal Aviation Administration's Air Traffic Control System Command Center (ATCSCC) that plan ATFMIs.  Our secondary interest is in surveying reasonable approaches for clustering calendar days in aviation systems research.  We describe the identification of similar days using the following sequence of steps: collecting available data sets, defining features within the data, clustering using various Machine Learning algorithms, and assessing the obtained results.
+This report describes our identification of sets of similar days where similarity is defined in terms of the conditions relevant to the planning of various Air Traffic Flow Management Initiatives (ATFMIs) such as Ground Delay Programs (GDPs).  The work here represents a first step toward the construction of a decision support tool for dispatchers at airline operations centers and officials at the Federal Aviation Administration's Air Traffic Control System Command Center (ATCSCC) that plan ATFMIs.  A side product of our work is an overview of reasonable approaches for categorizing calendar days in aviation systems research.  We describe the identification of similar days using the following sequence of steps: collecting available and appropriate data, defining features within the data, applying clustering or classifying algorithms, and assessing the obtained results.
 
-Terminal Area / Aerodrome Forecast (TAF), Aviation Routine Weather Report (METAR), and Localized Aviation MOS (Model Output Statistics) Product (LAMP) data are all useful data sets for describing airport weather.  TAF and LAMP data describe forecast conditions while METAR data describe observed conditions.  Historical archives of all three types of data exist, although coverage and availability are often limited when it comes to TAF data.  Aviation System Performance Metrics (ASPM) data summarize scheduled and observed airport operations.  ATFMI advisory data can be analyzed to see when and where ATFMIs have been implemented.
+Terminal Area / Aerodrome Forecast (TAF), Aviation Routine Weather Report (METAR), and Localized Aviation MOS (Model Output Statistics) Product (LAMP) data are all useful data sets for describing weather at airports in the New York area (and elsewhere).  TAF and LAMP data describe forecast conditions while METAR data describe observed conditions.  Historical archives of all three types of data exist, although coverage and availability are limited when it comes to TAF data.  Aviation System Performance Metrics (ASPM) data summarize scheduled and observed airport operations.  ATFMI advisory data can be analyzed to see when and where ATFMIs have been implemented.
 
-Table 1 details examples of reasonable methodologies for clustering calendar days for aviation systems research.
+Reasonable methods for defining features include: applying expert judgment (a ``knowledge-based'' approach), using Principal Component Analysis to find weighted summations of individual observations that capture variance among days across the observations (a ``PCA-based'' approach), and summarizing weather conditions using weighted summations of individual observations where scheduled traffic levels determine weights (a ``traffic-biasing'' approach).  We favor the knowledge-based approach here given the many relevant published research reports identifying features.
+
+Clustering is typically considered unsupervised learning, with the goal of exploring and finding structure in feature data, while classifying is considered supervised learning, with the goal of modeling and then forecasting label data.  Many efforts in aviation systems use records on the presence or absence of GDPs at various time points as label data.  We do not wish to model current decision making.  DBSCAN and k-means algorithms are commonly used for clustering.  DBSCAN will not assign an outlying data point to a cluster.  We prefer k-means clustering instead as we wish to assign all days to a cluster containing the most similar days.
+
+Table 1 details examples of reasonable methodologies for categorizing calendar days for aviation systems research.  The final row, highlighted in bold, represents our preferred approach.
 
 \begin{table}[htdp]
 \caption{Reasonable Approaches for Clustering Days by Conditions at Airports}
 \begin{center}
-\begin{tabular}{|l|l|l|l|}
+\begin{tabular}{|l|l|l|l|l|}
 \hline
-{\bf Data Sets}&{\bf Feature Selection}&{\bf Labels Applied}&{\bf Clustering}\\
-&{\bf Methodology}&&{\bf Algorithm}\\
-\hline 
-TAF data, & Knowledge based &Presence/Absence& k-means\\
-ASPM data,&& of GDPs&\\
-ATFMI advisory data&&&\\
+{\bf Goal}&{\bf Raw Data}&{\bf Feature Selection}&{\bf Labels}&{\bf Model /}\\
+&&&&{\bf Algorithm}\\
 \hline
-Traffic Biasing & K-means\\
+Descriptive & TAF data, & Knowledge-based &Initiation / & Logistic\\
+model of GDP & ASPM data,&& non-initiation &regression\\
+initiation &ATFMI advisory data&& of GDP &\\
 \hline
-Temporal PCA & K-means\\
+Forecast & TAF data, & Knowledge-based & Presence / & Random\\
+(near future) & ASPM data,&& absence of &forest\\
+ATFMIs & ATFMI advisory data&& ATFMI &\\
 \hline
-Traffic Biasing & DBSCAN\\
+Cluster days & METAR data, & PCA-based & - & k-means\\
+according to & ASPM data, & & (unsupervised) & \\
+observed & ATFMI advisory data & & & \\
+conditions & & & &\\
 \hline
-\end{tabular}
-\end{center}
-\label{default}
-\end{table}%
-
-\section*{Introduction and Context}
-Personnel at the Federal Aviation Administration's Air Traffic Control System Command Center and at airline operations centers regularly implement Air Traffic Flow Management Initiatives (ATFMIs) purposefully delaying, canceling, and rerouting flights. These initiatives increase the safety and efficiency of the nationÕs air transportation system, for example by replacing airborne delay with ground delay, and are necessary during inclement weather and in other situations where demand for system resources exceeds capacity.  In particular, problems at airports often create the need for ATFMIs.  Analysis of the past use of ATFMIs can demonstrate the relative success of courses of action but must account for the distinct conditions faced during planning and operations.  An identification of days that are similar can help, for example allowing analysts to focus on the 10 days in the past two years when there was thunderstorm activity at the key airports in the New York area between 8am and 11am, local time, but clear weather the rest of the day.
-
-This report describes our work to develop methodologies for the identification similar days in terms of aviation weather and air traffic operations at the airports in the New York area.  This report follows an earlier report to identify similar days based on conditions in the airspace around New York City.  We do not wish to replicate the prior report and thus only report on new findings specific to our study of airports.  The earlier report includes more detail regarding why it would be beneficial to identify similar days from the perspective of ATFMI planning or operations.
-
-As in our earlier work that focused on the airspace, we have published many of our results focusing on airports in a web based application.  The application is a minor update of the version we developed and reported on previously.  The earlier report contains a more complete description of our web based application, and we here only highlight recent changes.
-
-In this report, we primarily report on our work to identify features that describe aviation weather and air traffic at airports in the New York area, the data sets we use to define these features, and interesting results we obtain.  The final section of this report is a conclusion that compares the airport-focused results to the airspace-focused results obtained previously.
-
-\section*{Airport Weather and Air Traffic Data}
-We are interested in describing forecast and observed aviation weather and air traffic at airports in the New York area.  We focus on John F.\ Kennedy International Airport (JFK), Newark Liberty International Airport (EWR), and LaGuardia Airport (LGA).  These are the busiest airport in the region, by some distance.  Our methods could be applied to other airports in the area, or in other areas, relatively easily.
-
-Airports themselves issue Terminal Area/Aerodrome Forecast reports (TAFs) and Aviation Routine Weather Reports (METARs) which summarize local weather conditions. METARs can contain select forecast data but, generally speaking, TAF data are forecast data while METAR data are observational data. TAF and METAR data contain information on: wind speed and direction, wind gusts, visibility, precipitation, cloud height, cloud cover, humidity, and pressure. Prior research efforts have linked many of these variables to traffic flow management initiatives. Previous studies \cite{smith2009decision} have  successfully used TAF data to forecast Ground Delay Program initiation, but without giving details on the relative importance of specific variables.  The authors in \cite{mukherjeepredicting} point out the relevance of hourly observations of visibility, cloud height, wind, convection, and precipitation in particular, again for predicting GDPs. TAFs and METARs are issued roughly hourly to ensure reports keep up with changing weather conditions but also that distinct consumers of the data have a consistent report and time to plan against it.  A related study \cite{wolfe2011method} analyzed combinations of features (``queries") from airport-specific Weather Impacted Traffic Index (WITI) data to determine which were most relevant in predicting observed weather-related GDP from present time to six hours in the future.  They developed an information-retrieval model consisting of thresholding WITI features as queries or rules.  Their model was trained using observed 2008 GDP data, as recorded in the National Traffic Management Log (NTML), and tested on 2009 GDP data.  However this study concluded that the rules based on WITI features were only slightly more predictive than a constant rule which always predicted ``no GDP'. 
-
-A collection of hourly observations of TAF and METAR data, or other data detailing the variables included in TAF and METAR data, covering the busiest airports in the New York area over an extended period of time would comprise an ideal data set to describe airport weather in the area at the time.  Current TAF and current METAR data are available. A large volume of METAR data has been collected in a publicly accessible historical archive. While there are repositories of TAF data, such as www.ogimet.com and the NASA Data Warehouse, none have the same coverage and availability as the repository of METAR data. This result is unsurprising; there are relatively many uses for historical observations of weather conditions and relatively few for historical forecasts. Luckily, there is an alternate data source that does contain both forecast and observed weather at airports. The National Oceanic and Atmospheric Administration's (NOAAs) Localized Aviation MOS (Model Output Statistics) Product (LAMP) combines much of the same data that appears in TAF and METAR data. This data is free to download from NOAA. Table 2 summarizes the availability of useful airport weather data.
-
-Traffic flow management is concerned with mitigating temporary supply and demand imbalances. At the level of an airport, the primary concern is almost always that the number of aircraft scheduled to land at and take off across a set block of time may be higher than the throughput of the runways will allow. A reasonable length for such a block of time would be an hour or a few hours. Supply-demand imbalances over shorter periods of time, e.g., two aircraft scheduled to land at the same time, can be accommodated with minor path adjustments rather than the more strategic traffic flow management initiatives. Hourly observations of scheduled operations could be easily compared to weather data such as TAFs and METARs that are reported hourly. A collection of hourly observations of the numbers of aircraft scheduled to land at and take off from the busiest airports in the New York area would be an ideal data set here.
-
-\begin{table}[htdp]
-\caption{Summary of Airport Data}
-\begin{center}
-\begin{tabular}{|c|c|c|}
-Name & Feature & Notes
+Explore structure& METAR data, & Traffic-biasing & - & DBSCAN\\
+in airport & ASPM data & & & \\
+weather data & & & & \\
+\hline
+{\bf Cluster days} & {\bf LAMP data}, & {\bf Knowledge-based} & {\bf -} & {\bf k-means}\\
+{\bf according to} & {\bf ASPM data} & & & \\
+{\bf forecast} & & & &\\
+{\bf conditions} & & & &\\
+\hline
 \end{tabular}
 \end{center}
 \label{default}
 \end{table}
 
-\subsection*{LAMP Data details}
-An overview of LAMP can be found in \cite{ghirardelli2005overview}.  LAMP data is produced roughly hourly and and covers airports in the continental United States, Hawaii, Alaska and Puerto Rico.  For data sources it uses both surface observations and radar data.  The main premise of LAMP is that the most recent surface observations (mostly METAR reports, used as reported after undergoing quality control checks) can have strong predictive value in updating MOS. Radar data (16-level 2km WSI and 7-level 10km RCM) used as predictors for thunderstorm development.  Observed lightning from National Lightning Detection Network used in development of thunderstorm probabilities. 
+We apply our preferred approach, and a few alternative approaches.  The results show\dots
 
-The following are forecasted by LAMP:
-\begin{itemize}
-\item{Prob. of precipitation $>$ 0.01 inches in 6 or 12h period}
-\item{Precipitation type (liquid, snow, freezing) conditional on precipitation occurring}
-\item{Probability of ceiling height belonging to a fixed set of altitudes}
-\item{Probability of total sky cover belonging to a fixed set of categories (e.g. clear, few, overcast, etc.)}
-\item{Probability of visibility belonging to a fixed set of ranges}
-\item{Probability of obstruction to vision belonging to a fixed set of categories (e.g. haze, mist, fog, etc.)}
-\item{Probability of thunderstorm in 2h bins (for 25h out since start of LAMP run)}
-\end{itemize}
+\newpage\noindent
+\section{Introduction and Context}
+Personnel at the Federal Aviation Administration's Air Traffic Control System Command Center and at airline operations centers regularly implement Air Traffic Flow Management Initiatives (ATFMIs) such as Ground Delay Programs (GDPs) purposefully delaying, canceling, and rerouting flights. These initiatives increase the safety and efficiency of the nation's air transportation system, for example by replacing airborne delay with ground delay, and are necessary during inclement weather and in other situations where demand for system resources exceeds capacity.  In particular, problems at airports often create the need for ATFMIs.  Analysis of the past use of ATFMIs can demonstrate the relative success of courses of action but must account for the distinct conditions faced during planning and operations.  An identification of days that are similar can help, for example allowing analysts to focus on the 10 days in the past two years when there was thunderstorm activity at the key airports in the New York area between 8am and 11am, local time, but clear weather the rest of the day.  As one study reported, ``clustering techniques appear to be promising methods for identifying the major causes of Ground Delay Programs'' (\cite{grabbe2013similar}).
 
-\subsection*{METAR data details}
-METAR variables include: temperature, dew point, humidity, sea-level pressure, visibility, wind direction, wind speed, gust speed, precipitation, condition code, event code.
+This report describes our work to develop methodologies for the identification of similar days in terms of aviation weather and air traffic operations at the airports in the New York area.  This report follows an earlier report to identify similar days based on conditions in the airspace around New York City.  We do not wish to replicate the prior report and thus only report on new findings specific to our study of airports.  The earlier report includes more detail regarding why it would be beneficial to identify similar days from the perspective of ATFMI planning or operations.
 
-\section*{Selecting Features to Describe Airport Conditions}
-It is important to note that the dominant factor which determines the quality of any machine learning (or more generally, statistical model) approach is the selection of features that are most relevant rather than the choice of prediction or clustering algorithms.  Generally, the best source for relevant features are derived from expert domain knowledge.  However machine learning methods for automated feature selection can complement such expert elicitation by quantifying the relevance of each feature.  Moreover feature selection methods usually rely on having a dataset with accompanying ground truth labels.  For example, if we were interested in determining which weather and traffic features were most relevant to predicting a Ground Delay Program (GDP) on any given day, the feature selection algorithm would require a ``training" dataset that included not only the predictors (weather and traffic) but also the observed ground-truth label of absence or presence of GDP for each data record \cite{mukherjeepredicting}.  The goals of this algorithm would be to model current GDP decision making and/or to forecast future GDP decisions.  Our primary goal was somewhat different, to explore, characterize, and categorize airport weather and traffic conditions without modeling current GDP decision making.  Therefore, it was not appropriate, for our study, to use ground-truth labels.  The lack of ground-truth labels rules out various feature selection methods \cite{guyon2003introduction}.  Methods for feature selection and cluster analysis in an `unsupervised' environment like ours are often based on finding the most clearly defined clusters possible.  While we are interested in finding clearly defined clusters, where possible, we are most interested in identifying features that summarize and characterize how analysts and air traffic control planners describe airport weather and air traffic at airports\dots
+As in our earlier work that focused on the airspace, we have published many of our results focusing on airports in a web based application.  The application is a minor update of the version we developed and reported on previously.  The earlier report contains a more complete description of our web based application, and we here only highlight recent changes.
 
-Our clustering results were derived from features that were selected by either surveying the literature for those considered relevant or using heuristics.  In the sections below we summarize the literature employed for knowledge-based feature selection and also our heuristic methodologies: Traffic Biasing and Temporal PCA.
-\subsection*{Knowledge-Based Feature Selection}
-Previous studies have employed airport-centric observations and forecasts of weather and traffic data for clustering days.  We will use these weather and traffic features identified as relevant as part of our overall clustering analysis.  In these studies, features are initially identified based on domain knowledge, and then filtered for relevancy using either correlation analysis or other statistical measures, when used as explanatory varaibles in a statistical model for predicting the observed TFM data \cite{mukherjeepredicting,grabbe2013similar}.  
+In this report, we primarily report on our work to collect data, to identify features that describe aviation weather and air traffic at airports in the New York area, and interesting results we obtain when applying well-known clustering algorithms.  The final section of this report is a conclusion that compares the airport-focused results to the airspace-focused results obtained previously.
 
-In \cite{mukherjeepredicting}, the authors employ logistic regression and decision trees to predict the absence or presence of GDP every hour at EWR.  Explanatory variables which are determined as statistically significant as predictors include:
-\begin{itemize}
-\item{the present hours visibility,}
-\item{the demand-to-capacity ratio and queueing delay as derived from hourly scheduled arrival data and the assumed arrival capacity,}
-\item{the wind speed,}
-\item{the Weather Impacted Traffic Index for the local Air Route Traffic Control Center (ZNY - New York Center),}
-\item{and the averages, over the preceding three hours, of the wind speed, demand-to-capacity ratio, and ZNY WITI.}
-\end{itemize}
-These seven features were determined to be statistically significant as predictors of hourly GDP at EWR, whereas cloud ceiling and cross-winds at EWR were deemed to be not.  
+\section{Data Collection}
+We are interested in describing forecast and observed weather and air traffic at airports in the New York area.  We focus on John F.\ Kennedy International Airport (JFK), Newark Liberty International Airport (EWR), and LaGuardia Airport (LGA).  These are the busiest airport in the region.  Our methods could easily be applied to other airports in the area, or in other areas.
 
-In \cite{grabbe2013similar} the authors performed clustering of EWR airport-level data which included observed hourly arrivals and hourly wind speed, wind gusts, wind direction, and ceiling.  These features were selected as relevant by performing a correlation analysis with the absence or presence of hourly GDP at EWR.  Note unlike the previous analysis, visibility at EWR was determined to be not as strong a predictor of GDP, and thus was not used in subsequent clustering\footnote{Textural descriptions of precipitation were also presumably ruled out as relevant and thus not employed in their clustering analysis.}
+\subsection{Airport Weather Data}
+Airports themselves issue Terminal Area/Aerodrome Forecast reports (TAFs) and Aviation Routine Weather Reports (METARs) which summarize local weather conditions. METARs can contain select forecast data but, generally speaking, TAF data are forecast data while METAR data are observational data. TAF and METAR data contain information on: wind speed and direction, wind gusts, visibility, precipitation, cloud height, cloud cover, humidity, and pressure.  TAFs and METARs are issued roughly hourly to ensure reports keep up with changing weather conditions but also that distinct consumers of the data have a consistent report and time to plan against it.
 
-As an alternative to generating clusters of days, the authors of \cite{liu2014} employ a semi-supervised  method to identify similar days to a given day using a distance metric applied to hourly forecasted weather data on those days at a given airport (using TAF data).  One of their main contributions is to derive a distance metric from user supplied specifications of sets of similar and dissimilar hours.  The authors suggest and apply a specific method for finding similar and dissimilar hours based on runway configuration, Airport Acceptance Rates (AAR), and whether visual or instrument meteorological conditions are in effect.  The derived (learned from data and user supplied specifications) distance metric minimizes the distance between weather feature vectors at hours that are defined to be similar, while ensuring the distance between feature vectors at dissimilar hours is greater than one. Employing such a semi-supervised distance metric, their proof-of-concept example selects two days in 2012 at EWR and using a distance metrics, learned from similar and dissimilar hourly specifications for 2011 TAF and ASPM data, derives the five most similar days from 2011 to each of the two given 2012 days.  Their feature vector is nine-dimensional and consists of boolean values for absence/presence of thunderstorm and snow, and various functional transformations of visibility, ceiling and wind speed.
+Prior research efforts have linked many of the variables reported in TAF and METAR data to traffic flow management initiatives. \cite{smith2009decision} used TAF data to forecast Ground Delay Program initiation, without giving details on the relative importance of specific variables.  The authors in \cite{mukherjeepredicting} point out the relevance of hourly observations of visibility, cloud height, wind, convection, and precipitation in particular, again for predicting GDPs.
 
-Based on the literature, we define features that include, for each day, three-hour averages for each of the following variables: scheduled arrivals, scheduled departures, visibility, and wind speed.
+A collection of hourly observations of TAF and METAR data, or other data detailing the variables included in TAF and METAR data, covering the busiest airports in the New York area over an extended period of time would comprise an ideal data set to describe airport weather in the area at the time.  Current TAF and current METAR data are available at various websites. A large volume of METAR data has been collected in a historical archive that is publicly accessible at http://www.wunderground.com/history.  We've written a script to collect large volumes of this METAR data. While there are repositories of TAF data, such as www.ogimet.com and the NASA Data Warehouse described in \cite{NASA_data}, none have the same coverage and availability as the repository of METAR data hosted by wunderground.com. This result is unsurprising; there are relatively many uses for historical observations of weather conditions and relatively few for historical forecasts. There is another source of forecast airport weather data: the National Oceanic and Atmospheric Administration (NOAA) Localized Aviation MOS (Model Output Statistics) Product (LAMP). A large historical archive of this data is free to download from NOAA.
+
+An overview of LAMP can be found in \cite{ghirardelli2005overview}.  LAMP data is produced roughly hourly and and covers airports in the continental United States, Hawaii, Alaska and Puerto Rico.  LAMP uses both METAR and radar data, 16-level 2-km radar data from Weather Science, Inc.\ and 7-level 10-km Radar Coded Message Mosaic data, to forecast statistics that important in aviation systems. Radar data are, in particular, processed to yield predictors of thunderstorm development.  Observed lightning from the National Lightning Detection Network are also used in the development of thunderstorm probabilities. 
+
+The following are forecast by LAMP: the probability of precipitation, the precipitation type (liquid rain, snow, or freezing rain) conditional on precipitation occurring, the probabilities of cloud ceiling heights belonging to different ranges, the probabilities of total sky cover belonging to different categories (e.g. clear, few, overcast, etc.), the probabilities of visibility belonging to different ranges, the probabilities of obstruction to vision belonging to different categories (e.g. haze, mist, fog, etc.), and the probabilities of thunderstorms in different 2 hour windows of time up to 25 hours into the future.
+
+\subsection{Airport Traffic and Other Data}
+Traffic flow management is concerned with mitigating temporary supply and demand imbalances. At the level of an airport, the primary concern is almost always that the number of aircraft scheduled to land at and take off from a set of runways across a set block of time may be higher than the throughput of the runways will allow. A reasonable length for such a block of time would be an hour or a few hours. Supply-demand imbalances over shorter periods of time, e.g., two aircraft scheduled to land at the same time, can be accommodated with minor path adjustments rather than the more strategic traffic flow management initiatives. Hourly observations of scheduled operations could be easily compared to weather data such as TAFs and METARs that are reported hourly. A collection of hourly observations of the numbers of aircraft scheduled to land at and take off from the busiest airports in the New York area would be an ideal data set here.  Aviation System Performance Metrics (ASPM) data includes exactly such data and is available to all.
+
+Table 2 summarizes the availability of useful airport data.
+
+\begin{table}[htdp]
+\caption{Summary of Relevant Airport Data}
+\begin{center}
+\begin{tabular}{|l|l|l|}
+\hline
+{\bf Acronym} & {\bf Name} & {\bf Notes}\\
+\hline
+TAF & Terminal Area/& Hourly summaries of forecast weather.\\
+& Aerodrome Forecast & Gaps exist in available historical record.\\
+\hline
+METAR & Aviation Routine & Hourly summaries of observed weather.\\
+& Weather Report & Comprehensive historical archive at wunderground.com.\\
+\hline
+LAMP & Localized Aviation & Hourly forecasts of future weather conditions.\\
+& MOS Product & Comprehensive historical archive available from NOAA.\\
+\hline
+ASPM & FAA Aviation System & Hourly counts of scheduled and observed arrivals and\\
+& Performance Metrics & departures.\\
+& & Comprehensive historical archive available from FAA.\\
+\hline
+ASDI & Aircraft Situation & Detailed aircraft flight plan and observed position data.\\
+& Display to Industry & Comprehensive historical archive available from NASA.\\
+\hline
+\end{tabular}
+\end{center}
+\label{default}
+\end{table}
+
+\section{Selecting Features to Describe Airport Conditions}
+It is important to note that the dominant factor which determines the quality of any machine learning (or more generally, statistical model) approach is the selection of features that are most relevant rather than the choice of prediction or clustering algorithms.  Generally, the best source for relevant features is expert domain knowledge.  However machine learning methods for automated feature selection can complement expert elicitation by quantifying the relevance of  features to study goals such as modeling specific outcomes variables.
+
+Feature selection methods often rely on this idea that the goal of a study to model specific categorical or continuous variables and that a dataset with accompanying ground truth {\bf label data} is provided.  This is the {\bf supervised learning} case.  For example, if we were interested in determining which weather and traffic features were most relevant to predicting a Ground Delay Program (GDP) on any given day, the feature selection algorithm would require a {\bf training dataset} that included not only the predictors (weather and traffic) but also the observed ground-truth label of absence or presence of GDP for each data record \cite{mukherjeepredicting}.  The goals of this algorithm would be to model GDP decision making, using the training dataset to set the model, so that the derived model is able to forecast GDP decision making in a separate {\bf test dataset} as well as in subsequently considered datasets.
+
+Our primary goal is unusual; we wish to explore, characterize, and categorize airport weather and traffic conditions without modeling current GDP decision making.  Therefore, it was not appropriate, for our study, to use ground-truth labels.  The lack of ground-truth labels rules out various feature selection methods \cite{guyon2003introduction}.  Methods for feature selection and cluster analysis in an {\bf unsupervised learning} case like ours are often based on finding the most clearly defined clusters possible.  While we are interested in finding clearly defined clusters, where possible, we are most interested in identifying features that summarize and characterize how analysts and air traffic control planners describe airport weather and air traffic at airports.  We thus report on measures of {\bf structure} in our feature data, particularly as a function of the parameters of clustering algorithms that cannot be set using expert judgement, but do not believe such measures should be exclusively used to define the features we use or to ascertain the relative importance of these features.
+
+Our clustering results were derived from features that were selected by either surveying the literature for those considered relevant or using heuristics.  In the sections below we summarize the literature employed for knowledge-based feature selection and also our heuristic traffic-biasing and PCA-based methodologies.
+\subsection{Knowledge-Based Feature Selection}
+Previous studies have employed airport-centric observations and forecasts of weather and traffic data for clustering days.  We will use these weather and traffic features identified as relevant as part of our overall clustering analysis.  In these studies, features are initially identified based on domain knowledge, and then filtered for relevancy using either correlation analysis or other statistical measures, when used as explanatory variables in a statistical model for predicting observed ATFMI data \cite{mukherjeepredicting,grabbe2013similar}.  
+
+In \cite{mukherjeepredicting}, the authors employ logistic regression and decision trees to predict the absence or presence of GDP every hour at EWR.  Explanatory variables which are determined as statistically significant as predictors of GDPs at EWR include: visibility, runway crosswind, demand-to-capacity ratio and queueing delay as derived from hourly scheduled arrival data and the assumed arrival capacity, Weather Impacted Traffic Index for the local Air Route Traffic Control Center (ZNY - New York Center), and averages, over the preceding three hours, of wind speed, demand-to-capacity ratio, and ZNY WITI.
+
+In \cite{grabbe2013similar}, the authors performed clustering of EWR airport-level data which included observed hourly arrivals and hourly wind speed, wind gusts, wind direction, and ceiling.  These features were selected as relevant by performing a correlation analysis with the absence or presence of hourly GDP at EWR.  Note unlike the previous analysis, visibility at EWR was determined to be not as strong a predictor of GDP, and thus was not used in subsequent clustering.
+
+In \cite{Hansen_informs}, the authors also attempted to model GDP initiation at EWR. Weather variables considered included: the log of cloud ceiling heights, the log of (categorical) visibility data, and binary variables describing whether it was snowing or not, whether there was thunderstorm activity or not, whether tailwinds were greater than 5 knots or not, whether crosswinds were greater than 10 knots or not, whether Instrument Meteorological Conditions (IMC) or Visual Meteorological Conditions (VMC) were in effect.  Scheduled arrival demand and airport capacity estimates were also used as explanatory variables.  Logistic regression and similarity-based logistic regression models were used to forecast GDPs using data from 1, 2, or 3 hours prior.  At the same conference, the authors of \cite{Bloem_informs} described applied behavioral cloning and cascaded supervised inverse reinforcement learning to model GDP initiation.  In addition to the data described above, these authors used runway configuration and delay data.
+
+In both of the studies cited in the preceding paragraph, the authors pointed out that the relative infrequency of GDP initiation in their training datasets hampered modeling efforts.  A related study \cite{wolfe2011method} analyzed combinations of features (``queries") from airport-specific Weather Impacted Traffic Index (WITI) data to determine which were most relevant in predicting observed weather-related GDP from present time to six hours in the future.  They developed an information-retrieval model consisting of thresholding WITI features as queries or rules.  Their model was trained using observed 2008 GDP data and tested on 2009 GDP data.  However this study concluded that the rules based on WITI features were only slightly more predictive than a constant rule which always predicted ``no GDP.''   According to results discussed by \cite{Hansen_informs}, the overall accuracy of one model was 90\% but, when focusing on the observed, actual initiation of GDPs, the model only successfully forecast initiation roughly 30\% of the time.
+
+In \cite{buxi2011generating}, the authors modeled airport capacity profiles at EWR, San Francisco International Airport (SFO), and Los Angeles International Airport (LAX).  The authors used TAF numerical data on wind speed and direction, visibility, and cloud heights, and TAF categorical data on the presence or absence of rain, fog, and mist.  They tried k-means clustering on all of the 420 data points that describe a day in their dataset in one experiment, applied a PCA-based approach similar to the one we describe later in this chapter to automatically generate features in another experiment, and use a ``dynamic time warping'' approach that attempts to model time shift effects where changes in weather at one time point can lead to changes in airport capacity at another time point in a third experiment.
+
+As an alternative to explicitly modeling the presence or absence of GDPs, the authors of \cite{liu2014} employ a semi-supervised clustering methodology.  One of the main contributions in the cited study is the derivation of a distance metric for quantifying the separation between distance data points that describe hours or days from user specified sets of similar and dissimilar data points.  The authors also suggest and apply a specific method for defining sets of similar and dissimilar hours based on runway configuration, Airport Acceptance Rates (AAR), and whether visual or instrument meteorological conditions are in effect.  The derived (learned from data and user supplied specifications) distance metric minimizes the distance between weather feature vectors at ``similar'' hours, while ensuring the distance between feature vectors at ``dissimilar'' hours is greater than one. The authors' proof-of-concept example uses historical TAF and ASPM data from 2011 to define a distance metric and, for two given days in 2012 at EWR, selects the five most similar days from 2011.  Their feature vector is nine-dimensional and consists of boolean values for absence/presence of thunderstorm and snow, and various functional transformations of visibility, ceiling and wind speed.
+
+Based on the literature, we define features that include, for each day, three-hour averages for forecast data on each of the following variables: scheduled arrivals, scheduled departures, visibility, and wind speed.
  
-\subsection*{Traffic Biasing}
-Both our weather and traffic datasets contain hourly observations of many variables. Attempting to use all observations as features would produce a data set that is too large for most clustering algorithms, owing to the curse of dimensionality.  A na{\"i}ve mitigation strategy would be to uniformly average the values of numerical variables over a set of 24 hourly observations to produce a single value for a given day.  This would, however, treat all observations as equally important when we are interested in weather as it relates to air traffic and we know that air traffic is busier at certain times of day.  A more sophisticated approach would be to employ a weighted average approach where weights are determined through the following heuristic: determine daily average arrival count for a given airport, and normalize these counts to sum to one.  In our case we used ASPM scheduled arrival and departure counts from 2010-2013 to determine the average hourly arrival for each of the three New York region airports in our analysis.  Once normalized, these form 24 weights $w_h$, where $h$ is the hour index, and are then used to form the weighted average for the METAR numerical variables.  For example, a given day's visibility at JFK would have the following expression to reduce the 24 observed values to a single value $v^{TB}_{d} = \sum_{h}^{24} w_h v_{dh}$, where $d$ is the index for a given day in the dataset.  We call this approach traffic biasing.
+\subsection{A Traffic-Biasing Approach}
+Both our weather and traffic datasets contain hourly observations of many variables. Attempting to use all observations as features would produce a data set that is too large for most clustering algorithms (due to the curse of dimensionality).  A na{\"i}ve mitigation strategy would be to uniformly average the values of numerical variables over a set of 24 hourly observations to produce a single value for a given day.  This would, however, treat all observations as equally important.  We are interested in weather as it relates to air traffic and we know that not all times of day are equally important when it comes to air traffic.  A more sophisticated approach would be to employ a weighted average approach where weights are determined through the following heuristic: determine daily average arrival count for a given airport, and normalize these counts to sum to one.  In our case we used ASPM scheduled arrival and departure counts from 2010-2013 to determine the average hourly arrival for each of the three New York region airports in our analysis.  Once normalized, these form 24 weights $w_h$, where $h$ is the hour index, which are then used to calculate weighted averages of METAR numerical variables.  For example, a given day's visibility at JFK would have the following expression to reduce the 24 observed values to a single value $v_{d} = \sum_{h=1}^{24}\limits w_h v_{d,h}$, where $d$ is the index for a given day in the dataset.  We call this approach traffic biasing.
 
-Below we show the hourly variation of arrival data at JFK for every day between 2010-2013.  Note that there is a clear pattern; some hours are much busier than others.  The traffic biasing heuristic uses this information, weighting weather observations more when they were recorded at a time when there was more air traffic scheduled to use the airport.
+Figure 1 shows the hourly variation of arrival data at JFK for every day between 2010-2013.  Note that there is a clear pattern; some hours are much busier than others.  The traffic biasing heuristic uses this information, weighting weather observations more when they were recorded at a time when there was more air traffic scheduled to use the airport.
+\newpage\noindent
 
-\emph{insert box plot of hourly arrivals at JFK here}
+\textcolor{red}{insert box plot of hourly arrivals at JFK here}
 
 
-\subsection*{Temporal PCA}
-Another heuristic we have explored for feature selection is based on Principal Component Analysis (PCA) and, similar to traffic biasing, converts hourly observations of a variable to a daily summary statistic.  PCA is used to select the linear combination of the 24 observed values of each variable per day which captures the largest possible variation between days (i.e. the first PCA component).  Our earlier airspace-focused report describes how PCA can be used to automatically select features for a subsequent cluster analysis.
+\subsection{A PCA-Based Approach}
+Another heuristic we have explored for feature selection is based on Principal Component Analysis (PCA) and, similar to traffic biasing, converts hourly observations of a variable to a daily summary statistic.  PCA is used to select linear combinations of the 24 observed values of each variable per day which capture the largest possible variation between days (i.e. the first $n$ principal components).  Our earlier airspace-focused report describes, in more detail, how PCA can be used to automatically select features for a subsequent cluster analysis.  We summarize that discussion by noting that our application of PCA is a way to reduce the dimensions of a dataset while maintaining as much of the differences between data points (here days) as possible.
 
-Below we show the first three PCA components of a given day at JFK for various weather variables recorded in METAR data.  Note that some variables do have strongly explanatory first PCA component, but others do not.
+Figure 2 shows the amount of variance explained by the first three principal components of a given day at JFK for various weather variables recorded in METAR data.  Note that some variables do have strongly explanatory first principal component, but others do not.
 
-\emph{insert box plot of hourly arrivals at JFK here}
+\textcolor{red}{insert plot of explained variance of various principal components}
 
-\section*{Results and Discussion}
-\subsection*{Exploratory Analysis}
+\newpage\noindent
+\section{Results and Discussion}
+\subsection{Exploratory Analysis}
 Below we summarize the statistical variation of the datasets we have used to derive features and cluster days.  
 
 Variation over 24 hours of selected METAR weather variables for days in 2010-2013.
@@ -143,10 +177,7 @@ Variation over 24 hours of selected METAR weather variables for days in 2010-201
 \end{center}
 \end{figure}
 
-Variation over years of selected METAR weather variables every year.  
-
-%%%concurrency table
-\subsection*{Assessing Clusters}
+\subsection{Assessing Clusters}
 When ground-truth labels are available, clusters can be assessed by various quantitative metrics that characterize the intra-cluster similarity of those labels versus the inter-cluster similarity of labels.  One example of such a metric is the RAND index, but there are various others.  More generally a ``confusion matrix" is a standard representation in Machine Learning to present the accuracy of an algorithm that models a categorial variable.  Typically, a model that has been fit using a training data set is asked to forecast the categorical variable in a distinct test data set.  The rows of the confusion matrix represent the actual values of the categorical variable in the test data set while the columns represent the model output values of the categorical variable using the model inputs from the test data set.  Each cell in the matrix is a count showing how many times the model predicted label x (column) when the actual observation was was label y (row).
 
 We propose a novel method to use categorical data as ``psuedo-labels" for each observation.  The data we use for these psuedo-labels are the observed ``Condition" data column of METAR data, a categorical value.  Each day (sample of our data-matrix) has 24 such values and we propose three types of concurrency tables which allow use to analyze the similarity within and between the clusters using the frequency of occurrence of those categorical values.
