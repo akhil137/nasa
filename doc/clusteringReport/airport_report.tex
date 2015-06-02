@@ -152,15 +152,26 @@ Both our weather and traffic datasets contain hourly observations of many variab
 Figure 1 shows the hourly variation of arrival data at JFK for every day between 2010-2013.  Note that there is a clear pattern; some hours are much busier than others.  The traffic biasing heuristic uses this information, weighting weather observations more when they were recorded at a time when there was more air traffic scheduled to use the airport.
 \newpage\noindent
 
-\textcolor{red}{insert box plot of hourly arrivals at JFK here}
-
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.8125]{./figures/Fig1.pdf}
+\caption{Counts of scheduled arrivals at JFK by hour.}
+\label{default}
+\end{center}
+\end{figure}
 
 \subsection{A PCA-Based Approach}
 Another heuristic we have explored for feature selection is based on Principal Component Analysis (PCA) and, similar to traffic biasing, converts hourly observations of a variable to a daily summary statistic.  PCA is used to select linear combinations of the 24 observed values of each variable per day which capture the largest possible variation between days (i.e. the first $n$ principal components).  Our earlier airspace-focused report describes, in more detail, how PCA can be used to automatically select features for a subsequent cluster analysis.  We summarize that discussion by noting that our application of PCA is a way to reduce the dimensions of a dataset while maintaining as much of the differences between data points (here days) as possible.
 
 Figure 2 shows the amount of variance explained by the first three principal components of a given day at JFK for various weather variables recorded in METAR data.  Note that some variables do have strongly explanatory first principal component, but others do not.
 
-\textcolor{red}{insert plot of explained variance of various principal components}
+\begin{figure}[htbp]
+\begin{center}
+\includegraphics[scale=0.8125]{./figures/Fig2.pdf}
+\caption{Variance explained by principal components for weather variables at JFK.}
+\label{default}
+\end{center}
+\end{figure}
 
 \newpage\noindent
 \section{Results and Discussion}
