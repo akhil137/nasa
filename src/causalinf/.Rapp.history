@@ -1,0 +1,112 @@
+library(RgoogleMaps)#
+library(rstan)
+set.seed(1979)#
+source("./scenario.R")#
+source("./datagen.R")#
+pos<-scenario()#
+dat<-datagen(bkgnd.rate.cps=0,source.rate.cps=10e5,num.sources=1)#
+#
+#SM map generated at zoom=15#
+mapSM<-GetMap(destfile="SMmap.png",NEWMAP=FALSE,center=c(34.018,-118.447),maptype="mobile",zoom=15)#
+coords<-XY2LatLon(mapSM,pos[,1],pos[,2],zoom=14)#
+PlotOnStaticMap(mapSM,coords[,1],coords[,2],pch=24,cex=2,col=4)#
+PlotOnStaticMap(mapSM,34.02044,-118.44516,pch=13,cex=2,col=2,add=TRUE)#
+PlotOnStaticMap(mapSM,coords[,1],coords[,2],pch=24,cex=2,col=4)#
+source.coord<-XY2LatLon(mapSM,dat$source.pos[1,1],dat$source.pos[1,2],zoom=14)#
+PlotOnStaticMap(mapSM,source.coord[1,1],source.coord[1,2],pch=13,cex=2,col=2,add=TRUE)#
+#
+#Do stan stuff#
+x<-pos[,1]#
+y<-pos[,2]#
+rad_dat<-list(J=ncol(dat$counts),#
+N=nrow(dat$counts),#
+y=t(dat$counts),#
+xpos=x,#
+ypos=y)#
+#fit1a<-stan(fit=fit1,data=rad_dat,iter=1000, chains=4)#
+fit1a<-stan(file='stanmodel_vecpois_SuffStat',data=rad_dat,iter=1000, chains=4)#
+quartz()#
+traceplot(fit1a,pars=c("mu_raw","xsource","ysource"))#
+#
+mu_raw<-extract(fit1a,pars='mu_raw',permuted=TRUE)$mu_raw#
+quartz()#
+plot(density(mu_raw))#
+#
+#Do it again#
+fit1b<-stan(fit=fit1,data=rad_dat,iter=1000, chains=4)#
+mu_raw_b<-extract(fit1b,pars='mu_raw',permuted=TRUE)$mu_raw#
+lines(density(mu_raw_b),add=TRUE,col=2)#
+#
+#And again#
+fit1c<-stan(fit=fit1,data=rad_dat,iter=1000, chains=4)#
+mu_raw_c<-extract(fit1c,pars='mu_raw',permuted=TRUE)$mu_raw#
+lines(density(mu_raw_c),add=TRUE,col=3)
+quit
+quit()
+install.packages("twang")
+library(twang)
+set.seed(1)
+data(lalonde)
+library("twang")
+rdb<-c(-15:30)
+r<-10**(rdb/10)
+pr<-function(r){1/(1+r) exp(-1/r)}
+pr<-function(r){1/(1+r)*exp(-1/r)}
+ser<-pr(r)
+ser
+plot(rdb,ser,log='y',ylab="Symbol Error",'bo-')
+plot(rdb,ser,log='y',ylab="Symbol Error",'o-')
+pr<-function(r){1/(1+r)*exp(-1/(r+0.5)}
+pr<-function(r){1/(1+r)*exp(-1/(r+0.5))}
+ser
+ser<-pr(r)
+ser
+plot(rdb,ser,log='y',ylab="Symbol Error",'o-')
+labels <- sapply(ticks, function(i) as.expression(bquote(10^ .(i))))
+ticks <- seq(-4, 0, by=1)
+labels <- sapply(ticks, function(i) as.expression(bquote(10^ .(i))))
+labels
+axis(1, at=c(0.01, 0.1, 1, 10, 100), labels=labels)
+axis(2, at=c(0.01, 0.1, 1, 10, 100), labels=labels)
+plot(rdb,ser,log='y',ylab="Symbol Error",'o-')
+axis(2, at=c(0.01, 0.1, 1, 10, 100), labels=labels)
+install.packages("logp")
+install.packages("log10")
+plot(rdb,ser,log='y',ylab="Symbol Error",'o-')
+plot(rdb,ser)
+rdb
+ser
+ticks<-seq(-1,-4)
+ticks
+labels <- sapply(ticks, function(i) as.expression(bquote(10^ .(i))))
+labels
+plot(rdb,ser)
+axis(2,at=c(0.01, 0.1, 1, 10, 100), labels=labels)
+axis(2,at=c(0.1,0.01,0.001,0.0001), labels=labels)
+lines(rdb,y=ser,col="blue")
+plot.new()
+axis(2,at=c(0.1,0.01,0.001,0.0001), labels=labels)
+plot(rdb,ser)
+plot(rdb,ser,log="y")
+axis(2,at=c(0.1,0.01,0.001,0.0001), labels=labels)
+plot(rdb,ser,log="y",yaxt="n")
+axis(2,at=c(0.1,0.01,0.001,0.0001), labels=labels)
+update.packages()
+library(twang)
+set.seed(1)
+data(lalonde)
+lalonde
+col.names(lalonde)
+head(lalonde)
+lalonde$black
+class(lalonde$black)
+class(lalonde$treat)
+tail(lalonde)
+help(svydesign)
+help(svyglm)
+require("xts")
+gdpseq<-function(x,y,z){tmp<-seq(x,y,"hour")
+xts(rep(z,len(tmp)),tmp)}
+setwd("~/NoBackup/code/nasa/src/causalinf/")
+library(twang)
+set.seed(1)
