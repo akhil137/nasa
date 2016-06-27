@@ -1,6 +1,8 @@
 
 nasa ml
 ===
-**clustering**
 
-we use METAR weather obs.  There are 24
+Clustering pipeline to extract weather and traffic features from various datasets (not included).
+
+See publications for detail:
+K. Kuhn, A. Shah, and C. Skeels. Similar days for air traffic flow management in the new york area. In NASA Research Report, 2015.
