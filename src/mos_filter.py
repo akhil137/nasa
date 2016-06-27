@@ -114,17 +114,17 @@ for airport_code in nyregion_airports:
 	#now create the dataframe itself with above date Series as indices
 	#nyregion[airport_code] = pd.DataFrame(datMat,index=dates_index)
 
-	number_of_clusters=[5,10,20]
-	for numclusters in number_of_clusters:
-		kmeans = KMeans(init='k-means++', n_clusters=numclusters, n_init=10)
-		#scale 
-		labels=kmeans.fit_predict(scale(datMat))
-		#The webapp preferes cluster labels to start at 1
-		labels=labels.reshape(labels.shape[0],1)+1
-		#concatenate
-		kmeans_output = np.hstack((dayMat,labels,datMat))
-		#write to file
-		outfile = airport_code+'mos_kmeans'+'_'+str(numclusters)+'.csv'
-		head = 'date,cluster,' + ','.join(features)
-		np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head, \
-			comments='')
+	# number_of_clusters=[5,10,20]
+	# for numclusters in number_of_clusters:
+	# 	kmeans = KMeans(init='k-means++', n_clusters=numclusters, n_init=10)
+	# 	#scale 
+	# 	labels=kmeans.fit_predict(scale(datMat))
+	# 	#The webapp preferes cluster labels to start at 1
+	# 	labels=labels.reshape(labels.shape[0],1)+1
+	# 	#concatenate
+	# 	kmeans_output = np.hstack((dayMat,labels,datMat))
+	# 	#write to file
+	# 	outfile = airport_code+'mos_kmeans'+'_'+str(numclusters)+'.csv'
+	# 	head = 'date,cluster,' + ','.join(features)
+	# 	np.savetxt(outfile,kmeans_output,fmt='%s', delimiter=',', header=head, \
+	# 		comments='')
