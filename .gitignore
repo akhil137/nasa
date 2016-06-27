@@ -3,3 +3,13 @@
 *.blg
 *.log
 *.gz
+*.csv
+*.pyc
+data/
+doc/
+results/
+scripts
+src/kenTMIClusters/	
+src/causalinf/
+src/causalInfFAA/
+
